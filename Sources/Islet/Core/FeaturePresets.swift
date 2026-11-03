@@ -27,7 +27,10 @@ enum FeaturePreset: String, CaseIterable, Identifiable {
     }
 
     /// The features the preset keeps installed.
-    var features: Set<AppFeature> {
+    /// The island carries Islet's headline pages, so every preset installs it.
+    var features: Set<AppFeature> { presetFeatures.union([.notch]) }
+
+    private var presetFeatures: Set<AppFeature> {
         switch self {
         case .essential:
             return [.mixer, .keepAwake,

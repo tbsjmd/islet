@@ -724,8 +724,8 @@ enum FeatureCatalogTests {
             of: additionalPermissionsAlignment,
             options: .regularExpression) != nil,
                "the additional onboarding permission rows share one leading edge")
-        suite.expect(FeaturePreset.essential.features.flatMap(\.onboardingPermissions).isEmpty,
-               "the essential first-run choice asks for no broad permission")
+        suite.expect(FeaturePreset.essential.features.subtracting([.notch]).flatMap(\.onboardingPermissions).isEmpty,
+               "the essential first-run choice asks for no broad permission beyond the island")
         suite.expect(Set(FeaturePreset.windows.features.flatMap(\.onboardingPermissions))
                 == [.accessibility, .screenRecording],
                "the windows first-run choice explains exactly its two broad permissions")
@@ -2006,15 +2006,15 @@ enum FeatureCatalogTests {
                 && FeaturePreset.essential.features.contains(.keepAwake)
                 && FeaturePreset.essential.features.contains(.monitorPower),
                "the essential preset covers mixer, monitor and keep awake")
-        suite.expect(FeaturePreset.windows.features.allSatisfy { $0.group == .windowsDock },
-               "the windows preset stays inside the windows and Dock group")
+        suite.expect(FeaturePreset.windows.features.subtracting([.notch]).allSatisfy { $0.group == .windowsDock },
+               "the windows preset stays inside the windows and Dock group, plus the island")
         suite.expect(FeaturePreset.battery.features.allSatisfy {
                    $0.energyProfile != .mouse && $0.energyProfile != .pointer
                        && $0.energyProfile != .keyboard
                        && $0.energyProfile != .inputs
                },
                "battery and quiet installs nothing that listens to input")
-        suite.expect(FeaturePreset.battery.features.allSatisfy {
+        suite.expect(FeaturePreset.battery.features.subtracting([.notch]).allSatisfy {
                    !$0.permissions.contains(.accessibility)
                },
                "battery and quiet needs no accessibility permission at all")
