@@ -108,7 +108,7 @@ enum QuitAppsRuntimeTests {
             service.quitAllExceptions = Defaults.mandatoryAutoQuitExceptionBundleIDs
             AppKit.NSApp.setActivationPolicy(policy)
         }
-        let own = NSRunningApplication(ProcessInfo.processInfo.processIdentifier, "com.vorssaint.utils.dev")
+        let own = NSRunningApplication(ProcessInfo.processInfo.processIdentifier, "com.islet.utils.dev")
         let first = NSRunningApplication(10, "test.first")
         let second = NSRunningApplication(11, "test.second")
         let kept = NSRunningApplication(12, "test.kept")
@@ -200,7 +200,7 @@ enum QuitAppsRuntimeTests {
     }
 
     private static func radialAvailability(_ suite: TestSuite) {
-        let name = "com.vorssaint.tests.quit-apps-runtime.\(UUID().uuidString)"
+        let name = "com.islet.tests.quit-apps-runtime.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
         defaults.register(defaults: Defaults.registeredDefaults)
         ReviewDefaults.current = defaults

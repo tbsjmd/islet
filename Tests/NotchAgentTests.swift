@@ -3044,7 +3044,7 @@ enum NotchAgentTests {
     // MARK: Preferences and layout
 
     private static func agentDefaults(_ suite: TestSuite) {
-        let domain = "com.vorssaint.tests.agent-defaults.\(UUID().uuidString)"
+        let domain = "com.islet.tests.agent-defaults.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: domain)!
         defer { defaults.removePersistentDomain(forName: domain) }
 
@@ -3091,7 +3091,7 @@ enum NotchAgentTests {
 
     /// Only what the person shows or is alerted about asks for the limits.
     private static func limitUse(_ suite: TestSuite) {
-        let domain = "com.vorssaint.tests.notch-agent-limits"
+        let domain = "com.islet.tests.notch-agent-limits"
         let defaults = UserDefaults(suiteName: domain)!
         defaults.removePersistentDomain(forName: domain)
         defer { defaults.removePersistentDomain(forName: domain) }
@@ -3117,7 +3117,7 @@ enum NotchAgentTests {
     }
 
     private static func preferences(_ suite: TestSuite) {
-        let domain = "com.vorssaint.tests.notch-agents"
+        let domain = "com.islet.tests.notch-agents"
         let defaults = UserDefaults(suiteName: domain)!
         defaults.removePersistentDomain(forName: domain)
         defer { defaults.removePersistentDomain(forName: domain) }

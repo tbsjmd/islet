@@ -1,77 +1,34 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/logo-dark.svg">
-    <img src="docs/assets/readme/logo.svg" width="220" alt="Vorssaint logo">
-  </picture>
+  <img src="Resources/Brand/AppIcon-Default.png" width="160" alt="Islet icon">
 </p>
 
-<h1 align="center">Vorssaint</h1>
+<h1 align="center">Islet</h1>
 
 <p align="center">
-  One menu bar icon doing the job of a dozen paid Mac apps.<br>
-  Install only what you use.
+  A teleprompter, a video downloader and a dozen Mac utilities, living in the Dynamic Island.
 </p>
 
-<p align="center">
-  <a href="https://vorssaint.com">Website</a> ·
-  <a href="#install">Install</a> ·
-  <a href="#everything-it-does">Features</a> ·
-  <a href="#private-by-default">Privacy</a> ·
-  <a href="CHANGELOG.md">Changelog</a> ·
-  <a href="mailto:hello@vorssaint.com">Contact</a> ·
-  <a href="https://discord.gg/M6BwWH4BJp">Discord</a>
-</p>
+## The island's headline features
 
-<p align="center">
-  <a href="https://github.com/vorssaint/vorssaint-utils/releases"><img src="https://img.shields.io/github/v/release/vorssaint/vorssaint-utils?label=release&color=4c8dff" alt="Latest release"></a>
-  <a href="https://github.com/vorssaint/vorssaint-utils/releases"><img src="https://img.shields.io/github/downloads/vorssaint/vorssaint-utils/total?color=4c8dff" alt="Downloads"></a>
-  <a href="https://github.com/vorssaint/vorssaint-utils/actions/workflows/ci.yml"><img src="https://github.com/vorssaint/vorssaint-utils/actions/workflows/ci.yml/badge.svg?branch=main&event=push" alt="CI status"></a>
-  <a href="#what-you-need"><img src="https://img.shields.io/badge/macOS-14%2B%20Apple%20Silicon-black" alt="macOS 14 and newer, Apple Silicon"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="License GPL 3.0 or later"></a>
-</p>
+### Teleprompter
+Read your script right under the camera, so your eyes stay on the lens.
 
-<p align="center">
-  <a href="https://buymeacoffee.com/vorssaint">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" width="217" height="60" alt="Buy Me a Coffee">
-  </a>
-</p>
+- **Word tracking** listens and lights up each word as you say it, keeping the current line in view. Click any word to jump there.
+- **Classic** scrolls at a set pace, no microphone needed. **Voice-activated** scrolls only while you talk.
+- Starting a reading pins the island open; the closed island shows how far through you are. ⌘↩ starts reading from the editor.
 
-<p align="center">
-  For anything private, email
-  <a href="mailto:hello@vorssaint.com"><strong>hello@vorssaint.com</strong></a>.
-</p>
+The speech engine comes from [Textream](https://github.com/f/textream).
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/53716?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-53716" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/53716" alt="vorssaint/vorssaint-utils | Trendshift" width="250" height="55"></a>
-  <a href="https://trendshift.io/repositories/53716?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-53716" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/53716/weekly?language=Swift" alt="vorssaint/vorssaint-utils | Trendshift weekly ranking" width="250" height="55"></a>
-  <a href="https://trendshift.io/repositories/53716?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-53716" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/53716/monthly?language=Swift" alt="vorssaint/vorssaint-utils | Trendshift monthly ranking" width="250" height="55"></a>
-</p>
+### Video Downloader
+Paste a link from YouTube or 1,000+ other sites and download it from the island.
 
-<h2 align="center">Sponsors</h2>
+- Video or audio, with Best, 1080p, 720p or 480p quality. A link already on the clipboard is filled in for you.
+- Progress shows on the closed island; a finished download is announced, and one click shows it in Finder.
+- Uses your installed [yt-dlp](https://github.com/yt-dlp/yt-dlp), or fetches it once on first use. With ffmpeg installed, video and audio streams are merged and audio is saved as M4A.
 
-<p align="center">
-  Help keep Vorssaint free and open source. Share your product with Mac users.
-</p>
+Modeled on [Parabolic](https://github.com/NickvisionApps/Parabolic).
 
-<table align="center">
-  <tr>
-    <td align="center" width="520">
-      <br>
-      <strong>Your product here</strong><br>
-      <sub>Your logo · Your name · Your link</sub><br><br>
-      <a href="SPONSORS.md"><strong>Become our first sponsor →</strong></a><br><br>
-    </td>
-  </tr>
-</table>
-
-<p align="center">
-  <img src="docs/assets/readme/panel-mixer.png" width="196" alt="Volume mixer with per app sliders, one app boosted past 100 percent">
-  <img src="docs/assets/readme/panel-system.png" width="196" alt="System tab with temperatures, usage graphs and memory pressure">
-  <img src="docs/assets/readme/panel-controls.png" width="196" alt="Window controls with the app switcher and Dock features">
-  <img src="docs/assets/readme/panel-utilities.png" width="196" alt="Utilities with cleaner, Homebrew, media tools and clipboard">
-</p>
-
-Per app volume, a real system monitor, a better app switcher, window snapping, Dock previews, clipboard history, text snippets, a file shelf, an uninstaller. The utilities Mac users usually buy one by one, together behind a single menu bar icon, with no account, no telemetry and no subscription.
+Both pages lead the island's sections: hover the island, or press ⌥⌘E (Teleprompter) or ⌥⌘Y (Video Downloader) while it is open.
 
 ## Install only what you use
 
@@ -184,89 +141,24 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Keep awake.** Keep your Mac working on a timer, with the lid closed, or while selected apps, power or external displays are present.
 - **Displays.** Control individual displays and brightness, with hardware control where supported, half or quarter steps for the brightness keys, optional extra dimming below a monitor's minimum, and software dimming as a fallback.
 - **Extra brightness.** Use a MacBook Pro XDR display's HDR headroom to go beyond its normal maximum brightness.
-- **Bluetooth on sleep.** Disconnect Bluetooth during sleep and restore it on wake only if Vorssaint turned it off.
+- **Bluetooth on sleep.** Disconnect Bluetooth during sleep and restore it on wake only if Islet turned it off.
 
-## Install
 
-With [Homebrew](https://brew.sh):
+## Build and run
 
-```sh
-brew install --cask vorssaint
-```
-
-Or grab the disk image from the [releases page](https://github.com/vorssaint/vorssaint-utils/releases) and drag Vorssaint into Applications.
-
-Builds are signed with an Apple Developer ID and notarized, so macOS opens them without a fuss and your permissions survive updates.
-
-## Uninstall
-
-With Homebrew:
+Requires a Mac with Apple Silicon, macOS 14 or newer and the Xcode Command Line Tools.
 
 ```sh
-brew uninstall --cask vorssaint
+./build.sh            # builds and signs Islet.app
+./build.sh --install  # installs it into /Applications and launches it
 ```
 
-To remove Vorssaint completely, including its settings and permissions:
-
-```sh
-./Tools/uninstall.sh
-```
+To remove Islet with its settings and permissions: `./Tools/uninstall.sh`.
 
 ## Private by default
 
-Vorssaint is local-first, with no account, analytics or tracking. The network is touched only by things you can see: update checks, the speed test, Homebrew actions, optional online lyric lookup, temporary screenshot or recording links and feedback you explicitly send. The full story is in the [privacy notes](docs/PRIVACY.md).
-
-Permissions get the same treatment. Every one is optional, the app explains each in plain words, shows which features actually use it, and even tells you when a permission you granted is no longer needed by anything, with a shortcut to revoke it.
-
-<p align="center">
-  <img src="docs/assets/readme/permissions.png" width="720" alt="The Permissions page showing what each permission does, which features use it, and an unused permission warning">
-</p>
-
-See the [permissions guide](docs/PERMISSIONS.md) for which features need access and what remains available without it.
-
-## What you need
-
-- A Mac with Apple Silicon
-- macOS 14 Sonoma or newer
-
-### Build it yourself
-
-```sh
-git clone https://github.com/vorssaint/vorssaint-utils.git
-cd vorssaint-utils
-./build.sh --dev            # build the separate Developer variant
-./build.sh --dev --install  # install and launch it
-```
-
-Xcode Command Line Tools are the only requirement. The [contributing guide](CONTRIBUTING.md) covers the layout and conventions. Official builds come only from the maintainer: the GPL covers the source, while the Vorssaint name, icon and look are covered by [TRADEMARKS.md](TRADEMARKS.md), so forks need their own identity.
-
-## When something misbehaves
-
-See [troubleshooting](docs/TROUBLESHOOTING.md) for launch problems, permissions and missing previews, or [support](SUPPORT.md) for help.
-
-## Documentation
-
-- [Privacy](docs/PRIVACY.md), what does and does not leave your Mac
-- [Permissions](docs/PERMISSIONS.md), every macOS permission in plain words
-- [Troubleshooting](docs/TROUBLESHOOTING.md), the common fixes
-- [Contributing](CONTRIBUTING.md), build, layout and conventions
-- [Support](SUPPORT.md), where to get help
-- [Security](SECURITY.md), how to report a vulnerability
-
-## Community
-
-Vorssaint went from first commit to the front of GitHub trending in three days, top of the Swift charts, and issues and pull requests have shaped every release since. Bug reports, feature ideas and translations are all welcome, starting from the [contributing guide](CONTRIBUTING.md).
-
-Vorssaint is free and will stay that way. If it earned its place in your menu bar, a star helps other people find it, and a [coffee](https://buymeacoffee.com/vorssaint) keeps the maintainer awake, with or without the Keep awake feature.
-
-## Acknowledgements
-
-- App icon designed by [@divisionseven](https://github.com/divisionseven)
+Islet is local-first, with no account, analytics or tracking. The network is touched only by things you start: video downloads, the one-time yt-dlp download, the speed test, Homebrew actions and optional online lyric lookup. Automatic updates, temporary share links and in-app feedback are off in this build. Teleprompter speech recognition is done by macOS. See the [privacy notes](docs/PRIVACY.md) and [permissions](docs/PERMISSIONS.md).
 
 ## License
 
-[GPL 3.0 or later](LICENSE), copyright 2026 Vorssaint. The license covers the source code; the Vorssaint name, logo and look are covered separately in [TRADEMARKS.md](TRADEMARKS.md).
-
-<p align="center">
-  <sub>Made by <a href="https://x.com/vorssaint">@vorssaint</a></sub>
-</p>
+[GPL 3.0 or later](LICENSE). Islet is a fork of [Vorssaint Utils](https://github.com/vorssaint/vorssaint-utils); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for it, Textream and Parabolic.

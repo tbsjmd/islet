@@ -6,7 +6,7 @@ import Foundation
 enum ClaudeAccountProfileTests {
     static func run(_ suite: TestSuite) {
         let manager = FileManager.default
-        let home = manager.temporaryDirectory.appending(path: "vorssaint-claude-profiles-\(UUID())")
+        let home = manager.temporaryDirectory.appending(path: "islet-claude-profiles-\(UUID())")
         defer { try? manager.removeItem(at: home) }
         do {
             try manager.createDirectory(at: home, withIntermediateDirectories: true)

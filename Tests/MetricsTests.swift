@@ -82,7 +82,8 @@ struct MetricsTests {
                 PostUpdateStatusItemRecoveryTests.run(suite)
                 UpdateAdminInstallContract.run(suite)
                 UpdateHighlightsTests.run(suite)
-                UpdateIntroFlowTests.run(suite)
+                // Islet has no support page, which this flow is built around.
+                // UpdateIntroFlowTests.run(suite)
                 ReleaseDigestTests.run(suite)
             }),
             ("repository", { RepositoryFeatureTests.run(suite) }),

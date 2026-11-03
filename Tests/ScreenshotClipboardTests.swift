@@ -7,7 +7,7 @@ import ImageIO
 /// The editor's production copy methods, with an isolated pasteboard and
 /// defaults domain. Image bytes still go through the real renderer and AppKit.
 enum ScreenshotClipboardTests {
-    static let defaultsDomain = "com.vorssaint.tests.screenshot-clipboard.\(UUID().uuidString)"
+    static let defaultsDomain = "com.islet.tests.screenshot-clipboard.\(UUID().uuidString)"
     static var copyDirectory: URL?
 
     enum UserDefaults {
@@ -19,13 +19,13 @@ enum ScreenshotClipboardTests {
     }
 
     final class Pasteboard {
-        let contents = AppKit.NSPasteboard(name: .init("Vorssaint.ScreenshotClipboardTests.\(UUID().uuidString)"))
+        let contents = AppKit.NSPasteboard(name: .init("Islet.ScreenshotClipboardTests.\(UUID().uuidString)"))
         var acceptsWrites = true
         func clearContents() { contents.clearContents() }
         func writeObjects(_ objects: [NSPasteboardWriting]) -> Bool {
             acceptsWrites && contents.writeObjects(objects)
         }
-        func declareVorssaintSource() { contents.declareVorssaintSource() }
+        func declareIsletSource() { contents.declareIsletSource() }
     }
 
     enum NSSound {

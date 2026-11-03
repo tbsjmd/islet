@@ -181,7 +181,7 @@ enum ScreenshotAutoCopyTests {
 
     @MainActor private static func checks(_ suite: TestSuite) async {
         let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Vorssaint-AutoCopy-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("Islet-AutoCopy-\(UUID().uuidString)", isDirectory: true)
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         } catch {

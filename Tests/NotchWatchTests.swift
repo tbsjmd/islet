@@ -277,12 +277,13 @@ enum NotchWatchTests {
     }
 
     private static func gateContracts(_ suite: TestSuite) {
-        let domain = "com.vorssaint.tests.notch-watch"
+        let domain = "com.islet.tests.notch-watch"
         let defaults = UserDefaults(suiteName: domain)!
         defaults.removePersistentDomain(forName: domain)
         defer { defaults.removePersistentDomain(forName: domain) }
         for (key, value) in Defaults.registeredDefaults where key.hasPrefix("notch") { defaults.set(value, forKey: key) }
         for (key, value) in AppFeature.availabilityDefaults { defaults.set(value, forKey: key) }
+        defaults.set(false, forKey: DefaultsKey.notchEnabled)
         suite.expect(!NotchWatchSupport.isEnabled(in: defaults), "Watch needs the island")
         defaults.set(true, forKey: DefaultsKey.notchEnabled)
         suite.expect(NotchWatchSupport.isEnabled(in: defaults) && NotchSupport.routes(.watch, in: defaults)
@@ -311,7 +312,7 @@ enum NotchWatchTests {
     /// The service is not part of this test binary, so the reading loop's
     /// load-bearing lines are pinned at their source.
     private static func readingLoopContracts(_ suite: TestSuite) {
-        let source = (try? String(contentsOfFile: "Sources/Vorssaint/Services/Notch/NotchWatchService.swift",
+        let source = (try? String(contentsOfFile: "Sources/Islet/Services/Notch/NotchWatchService.swift",
                                   encoding: .utf8)) ?? ""
         func line(_ fragment: String, after start: Int = 0) -> Int? {
             source.components(separatedBy: "\n").enumerated().first { offset, line in

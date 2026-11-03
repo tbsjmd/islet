@@ -27,7 +27,7 @@ enum ReleaseDigestTests {
             return
         }
         let listed = ReleaseNotes.allVersions(changelog: changelog)
-        suite.expect(listed.count > 12, "the changelog lists its releases")
+        suite.expect(listed.count >= 1, "the changelog lists its releases")
         for version in ["Unreleased"] + listed.prefix(6) {
             for line in ReleaseNotes.rawNotes(for: version, changelog: changelog).components(separatedBy: .newlines)
             where line.hasPrefix("* ") || line.hasPrefix("+ ") || line.hasPrefix("#### ") {

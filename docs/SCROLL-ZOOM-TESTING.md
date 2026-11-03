@@ -7,10 +7,10 @@ at the pointer. Use an app or document that supports a real trackpad pinch.
 
 ```sh
 ./build.sh --dev --install
-./build/VorssaintDeveloper --selftest
+./build/IsletDeveloper --selftest
 ```
 
-1. Quit other Vorssaint instances. Disable other wheel-modifying utilities for
+1. Quit other Islet instances. Disable other wheel-modifying utilities for
    the baseline test.
 2. Check the build output for stable signing and grant Developer Accessibility.
    It has separate settings and permissions from the official app.
@@ -35,7 +35,7 @@ at the pointer. Use an app or document that supports a real trackpad pinch.
 5. Repeat on a second display and the current visible Space. Holding a modifier
    without scrolling must not activate a window or switch Spaces.
 
-## Switcher and Vorssaint panels
+## Switcher and Islet panels
 
 1. Assign Command to Pinch, enable vertical inversion, and open the switcher with
    Command-Tab. Keep Command held and scroll through its selection.
