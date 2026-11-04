@@ -1,62 +1,95 @@
 <p align="center">
-  <img src="Resources/Brand/AppIcon-Default.png" width="160" alt="Islet icon">
+  <img src="docs/assets/readme/banner.png" alt="Islet: your Mac's Dynamic Island, finally doing something" width="100%">
 </p>
-
-<h1 align="center">Islet</h1>
 
 <p align="center">
-  A voice assistant, a teleprompter, a video downloader and a dozen Mac utilities, living in the Dynamic Island.
+  <a href="https://github.com/tbsjmd/islet/releases/latest"><img alt="Download for macOS" src="https://img.shields.io/badge/Download-macOS%2014%2B-000000?style=for-the-badge&logo=apple&logoColor=white"></a>
+  <a href="https://islet-mac.netlify.app"><img alt="Website" src="https://img.shields.io/badge/Website-islet-7c5cff?style=for-the-badge&logo=netlify&logoColor=white"></a>
+  <a href="LICENSE"><img alt="GPL-3.0" src="https://img.shields.io/badge/License-GPL--3.0-10b981?style=for-the-badge"></a>
+  <a href="https://github.com/tbsjmd/islet/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/tbsjmd/islet?style=for-the-badge&color=f59e0b&logo=github"></a>
 </p>
 
-## The island's headline features
+<p align="center">
+  <b>Islet</b> turns the notch around your MacBook's camera into a Dynamic Island that does real work:<br>
+  a voice agent that sees and uses your screen, a teleprompter that reads along with you, a video downloader,<br>
+  and 70+ Mac tools behind one menu bar icon. Free, open-sourced and local-first.
+</p>
 
-### Assistant
-Hold <kbd>⌃ control</kbd> + <kbd>⌥ option</kbd>, ask out loud, let go. Or type into the Assistant page.
+<p align="center">
+  <a href="#-the-assistant">Assistant</a> ·
+  <a href="#-the-teleprompter">Teleprompter</a> ·
+  <a href="#-the-video-downloader">Video Downloader</a> ·
+  <a href="#-everything-else">Everything else</a> ·
+  <a href="#-install">Install</a> ·
+  <a href="#-build-from-source">Build</a> ·
+  <a href="https://islet-mac.netlify.app">Website</a>
+</p>
 
-- **Instant commands, no AI:** "open Spotify", "quit Slack", "volume 30", "mute", "dark mode on", "search for…", "next song", "set a 10 minute timer", "run my Log Water shortcut", "find my lease PDF", "remind me to call Sam in 20 minutes".
-- **Sees your screen when you ask about it:** "what's this error?", "summarize this page". Anything else goes to the model you chose.
-- **Does it for you:** "reply to this email saying Thursday works", "fill in this form with my address", "turn on Night Shift". It looks at the screen and a map of the front app's buttons and fields, then clicks, types, presses keys and scrolls step by step until it's done, showing each step in the island. Esc or ⌃⌥ stops it.
-- **Shows you how:** "how do I export this as a PDF?" draws a ring and a label over the exact spot and moves to the next step when you click it.
-- **Asks first:** anything that sends, buys, deletes or can't be undone waits for your "Do it", and by default it asks once before it takes over the mouse and keyboard. It never types into password fields. It can also open apps and links, search, set volume, dark mode and timers, find files, run Shortcuts and add reminders.
-- **Your sign-in or key:** Claude through your Claude plan (Connect signs you in), a Claude API key, Gemini through your Google sign-in (Gemini CLI) or a free Gemini API key, or a local model server. Everything is in Settings → Dynamic Island → Assistant.
-- **Remembers you:** "remember I prefer aisle seats" goes into every later ask; forget items from the ✦ menu.
-- Replies are read aloud after spoken asks (toggle with the speaker button). Speech is recognized on your Mac. The closed island shows Listening, Thinking and Talking.
+---
 
-Built from the best of [Atticus](https://github.com/SaarthurR/atticus-mac) and [Plip](https://github.com/hussainn7/plip-oss).
+## ✦ The Assistant
 
-### Teleprompter
+Hold <kbd>⌃ control</kbd> + <kbd>⌥ option</kbd>, say what you want, let go.
+
+| You say | Islet |
+|---|---|
+| *"Open Spotify"* · *"volume 30"* · *"dark mode on"* · *"set a 10 minute timer"* | Does it instantly, **no AI at all** |
+| *"What does this error mean?"* | Looks at your screen and explains it in a sentence |
+| *"How do I export this as a PDF?"* | **Draws a ring on the exact spot** and moves to the next step when you click it |
+| *"Reply to this email saying Thursday works"* | **Clicks and types for you**, step by step, showing each step in the island |
+| *"Find my lease PDF"* | Searches your Mac with Spotlight and lists the matches |
+| *"Remember I prefer aisle seats"* | Keeps it in mind for every later ask |
+
+- **Your sign-in or your key.** Claude on your Claude plan (one-click **Connect**, no API key), a Claude API key, Gemini with your Google sign-in or a free Gemini API key, or any local model server such as Ollama. Pick one in **Settings → Islet → Assistant**.
+- **An agent, not just a chatbot.** Each step it reads a screenshot plus a numbered map of the front app's buttons and fields, then clicks, types, presses keys, scrolls or drags until the job is done.
+- **Safe by default.** It asks once before it takes over the mouse and keyboard. Anything that sends, buys, deletes or can't be undone waits for your **Do it**. It never types into password fields, the model has no shell, and <kbd>Esc</kbd> stops it instantly.
+- **Talks back.** Replies are read aloud, in the voice you choose. Speech is recognized on your Mac.
+
+```mermaid
+flowchart LR
+    A["Hold ⌃⌥ and ask"] --> B{"Instant command?"}
+    B -- yes --> C["Done, no AI"]
+    B -- no --> D["Screenshot + element map"]
+    D --> E["Claude or Gemini"]
+    E --> F{"Point, act or answer"}
+    F -- point --> G["Ring on screen, wait for your click"]
+    F -- act --> H{"Risky?"}
+    H -- yes --> I["Ask: Do it?"]
+    H -- no --> J["Click · type · scroll"]
+    I --> J
+    G --> D
+    J --> D
+    F -- answer --> K["Say it"]
+```
+
+## ✦ The Teleprompter
+
 Read your script right under the camera, so your eyes stay on the lens.
 
-- **Word tracking** listens and lights up each word as you say it, keeping the current line in view. Click any word to jump there.
-- **Classic** scrolls at a set pace, no microphone needed. **Voice-activated** scrolls only while you talk.
-- Starting a reading pins the island open; the closed island shows how far through you are. ⌘↩ starts reading from the editor.
+- **Word tracking:** it listens and lights up each word as you say it. Skip, ad-lib or go back and it finds you. Click any word to jump.
+- **Classic:** steady scrolling at the speed you set. **Voice-activated:** scrolls only while you talk.
+- The island stays open while you read, and the closed island shows how far through you are.
 
-The speech engine comes from [Textream](https://github.com/f/textream).
+Speech engine from [Textream](https://github.com/f/textream).
 
-### Video Downloader
-Paste a link from YouTube or 1,000+ other sites and download it from the island.
+## ✦ The Video Downloader
 
-- Video or audio, with Best, 1080p, 720p or 480p quality. A link already on the clipboard is filled in for you.
-- Progress shows on the closed island; a finished download is announced, and one click shows it in Finder.
-- Uses your installed [yt-dlp](https://github.com/yt-dlp/yt-dlp), or fetches it once on first use. With ffmpeg installed, video and audio streams are merged and audio is saved as M4A.
+Paste a link from YouTube or 1,000+ other sites and it downloads right in the island.
+
+- Video or audio, in Best, 1080p, 720p or 480p. A link already on your clipboard is filled in for you.
+- Progress on the closed island, a notice when it's done, and one click to show it in Finder.
+- Uses your [yt-dlp](https://github.com/yt-dlp/yt-dlp) or fetches it once. With ffmpeg, streams are merged into MP4 and audio is saved as M4A.
 
 Modeled on [Parabolic](https://github.com/NickvisionApps/Parabolic).
 
-These pages lead the island's sections: hover the island, or press ⌥⌘K (Assistant), ⌥⌘E (Teleprompter) or ⌥⌘Y (Video Downloader) while it is open.
+## ✦ Everything else
 
-## Install only what you use
+The island also holds music with lyrics, your calendar, timers, notifications, the clipboard, a file shelf, a camera mirror, system stats and AI coding agent usage. Behind the menu bar icon are 70+ tools you install one by one, so you only load what you use.
 
-Choose individual features or start with a preset. Uninstalled features stop loading and disappear from the interface; reinstalling restores their settings. Setup asks only for the permissions your choices need.
+<details>
+<summary><b>See all 70+ tools</b></summary>
 
-<p align="center">
-  <img src="docs/assets/readme/features-hub.png" width="720" alt="The Features hub in Settings, installing and uninstalling whole features">
-</p>
-
-Reorder or hide panel sections, choose a compact layout, and export settings to another Mac. The app supports more than a dozen languages.
-
-## Everything it does
-
-### Sound
+#### Sound
 
 - **Volume mixer.** Set volume per app, boost quiet audio past 100%, and pin or reorder favorites. No audio driver required.
 - **Per app output.** Play music through speakers while a call uses your headset.
@@ -64,7 +97,7 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Microphone tools.** Choose a preferred input, adjust its level on supported devices, and apply available microphone mute or input-volume controls with one shortcut. Siri and some apps may still hear you; Mic Mute is not a privacy lock. Its indicator shows that the feature is on, not that every app receives silence.
 - **Music app blocker.** Prevent unwanted Music launches after detected playback-button presses. Requires Accessibility.
 
-### Know what your Mac is doing
+#### Know what your Mac is doing
 
 - **System monitor.** CPU, GPU, memory, temperatures, battery health and power use, with history graphs and a view of energy-hungry apps.
 - **Fan Control (beta).** Set manual fan speeds or temperature curves and monitor live RPM.
@@ -72,7 +105,7 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Network.** See live traffic, session totals and your local IP address, or run a speed test.
 - **Alerts.** Get notified about sustained CPU load, high temperatures, memory pressure, low disk space or low battery.
 
-### Windows and the Dock
+#### Windows and the Dock
 
 - **App switcher.** Switch between apps and windows with live previews, search and display filters. A simpler mode works without screen capture.
 - **Window layout.** Snap windows into layouts, move them between displays and restore earlier positions using shortcuts, screen edges or modifier-drag gestures.
@@ -83,15 +116,7 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Quit on close.** Quit selected apps when their last window closes.
 - **Quit and close protection.** Prevent accidental ⌘Q or ⌘W with a hold, double press or extra modifier, per app.
 
-<p align="center">
-  <img src="docs/assets/readme/quit-protection-hold.png" width="300" alt="The hold-to-confirm prompt showing progress below the Command-Q quit shortcut hint">
-</p>
-
-<p align="center">
-  <img src="docs/assets/readme/window-switcher.gif" width="540" alt="The window switcher showing live thumbnails of open windows">
-</p>
-
-### Keyboard and mouse
+#### Keyboard and mouse
 
 - **Text snippets.** Expand short triggers into text with clipboard, date and time variables, or insert snippets from a searchable menu.
 - **Smooth scrolling.** Give your mouse wheel a fluid glide with adjustable speed and response.
@@ -109,7 +134,7 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Super key.** Use Caps Lock or a right-side modifier as a shortcut combination, with a separate tap action and app exclusions.
 - **Keyboard shortcuts.** Manage feature shortcuts in one place, including optional takeover of supported macOS shortcuts while a feature is active.
 
-### Clipboard, files and links
+#### Clipboard, files and links
 
 - **Clipboard history.** Search local text, image and file history, pin favorites, preview entries and paste with shortcuts.
 - **Auto clear clipboard.** Clear the system clipboard after a delay, sleep or lock, while keeping saved history.
@@ -119,7 +144,7 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Clean URL.** Remove tracking parameters from links, manually or automatically.
 - **Disk image installer.** Install an app from a mounted disk image and eject it, with optional download cleanup.
 
-### Everyday tools
+#### Everyday tools
 
 - **Dynamic Island.** Keep music, notifications, calendars, timers, downloads and everyday controls around the camera cutout, or a simulated one on other Macs. Customize sections and shortcuts, with optional lyrics, a live equalizer, camera preview and file tools.
 - **AI agents.** Follow Claude, Codex, OpenCode and GitHub Copilot in the Dynamic Island: plan limits and when they reset where available, tokens, API value, models, projects and live work, with a notice when a long task finishes. Codex's banked resets can be used from there too, and each extra Codex account (`CODEX_HOME`) can have a limits card of its own. Copilot uses local CLI/app session logs; its token totals update when shutdown metrics arrive, and aggregate API-value estimates use base rates.
@@ -131,7 +156,7 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Scratchpad.** Keep autosaved notes in tabs, with Markdown preview and export, in a floating window or Dynamic Island.
 - **Cleaning Mode.** Lock keyboard input while cleaning, with a black screen or a small visible indicator.
 
-### Capture and create
+#### Capture and create
 
 - **Screen capture.** Switch between screenshots, recording, text recognition and color picking in one selector with a pixel magnifier.
 - **Screenshot.** Capture an area, window, screen or scrolling page. Annotate, crop, redact, add backgrounds and watermarks, pin captures, send them through the Share menu or share an expiring link.
@@ -141,7 +166,7 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Color picker.** Copy a screen color as HEX, RGB, HSL or SwiftUI code.
 - **Media tools.** Compress and edit videos, batch-convert images, add watermarks, make GIFs and extract text, all locally.
 
-### App management
+#### App management
 
 - **App updates.** Check store apps, package-managed apps and supported developer feeds in one list. Install managed updates together or open an app's own updater.
 - **Cleaner.** Remove caches, logs and app leftovers, manually or on a schedule.
@@ -150,29 +175,57 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 - **Homebrew manager.** Search, install and remove formulae and casks without opening a terminal.
 - **Port manager.** Find processes listening on network ports and stop them with Kill Process when installed.
 
-### Energy and display
+#### Energy and display
 
 - **Keep awake.** Keep your Mac working on a timer, with the lid closed, or while selected apps, power or external displays are present.
 - **Displays.** Control individual displays and brightness, with hardware control where supported, half or quarter steps for the brightness keys, optional extra dimming below a monitor's minimum, and software dimming as a fallback.
 - **Extra brightness.** Use a MacBook Pro XDR display's HDR headroom to go beyond its normal maximum brightness.
 - **Bluetooth on sleep.** Disconnect Bluetooth during sleep and restore it on wake only if Islet turned it off.
 
+</details>
 
-## Build and run
+## ✦ Install
 
-Requires a Mac with Apple Silicon, macOS 14 or newer and the Xcode Command Line Tools.
+1. **[Download Islet-1.0.0.dmg](https://github.com/tbsjmd/islet/releases/latest/download/Islet-1.0.0.dmg)** from the [latest release](https://github.com/tbsjmd/islet/releases/latest).
+2. Open it and drag **Islet** onto **Applications**.
+3. Open Islet. macOS may say it can't verify the developer, because Islet isn't notarized yet: open **System Settings → Privacy & Security** and click **Open Anyway**.
+4. Hover over the island. Then open **Settings → Islet → Assistant**, connect Claude or Gemini, and hold <kbd>⌃</kbd><kbd>⌥</kbd>.
+
+Needs a Mac with Apple Silicon on macOS 14 Sonoma or newer. On Macs without a notch, the island floats as a capsule in the menu bar.
+
+## ✦ Build from source
+
+Only the Xcode Command Line Tools are needed.
 
 ```sh
-./build.sh            # builds and signs Islet.app
-./build.sh --install  # installs it into /Applications and launches it
+git clone https://github.com/tbsjmd/islet.git
+cd islet
+./build.sh             # builds and signs build/stage/Islet.app
+./build.sh --install   # installs it into /Applications
+./build.sh --test      # runs the test suite
+./Tools/make-dmg.sh    # packages dist/Islet-<version>.dmg
 ```
 
-To remove Islet with its settings and permissions: `./Tools/uninstall.sh`.
+The website lives in [`site/`](site/) and deploys to [Netlify](https://islet-mac.netlify.app) on every push to `main`.
 
-## Private by default
+## ✦ Private by default
 
-Islet is local-first, with no account, analytics or tracking. The network is touched only by things you start: assistant questions (sent through your Claude Code, with a screenshot only when you ask about the screen), video downloads, the one-time yt-dlp download, the speed test, Homebrew actions and optional online lyric lookup. Automatic updates, temporary share links and in-app feedback are off in this build. Teleprompter speech recognition is done by macOS. See the [privacy notes](docs/PRIVACY.md) and [permissions](docs/PERMISSIONS.md).
+No account, no analytics, no tracking. The network is used only for what you start: Assistant questions and tasks (sent to the AI you connected, with a screenshot only when they're about the screen), video downloads, the speed test, Homebrew actions, update checks for your apps and optional lyrics. Speech recognition happens on your Mac, API keys live in your keychain, and password fields are never read. Details: [privacy](docs/PRIVACY.md) · [permissions](docs/PERMISSIONS.md).
 
-## License
+## ✦ Credits
 
-[GPL 3.0 or later](LICENSE). Islet is a fork of [Vorssaint Utils](https://github.com/vorssaint/vorssaint-utils); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for it, Textream and Parabolic.
+Islet stands on the shoulders of great open-source projects:
+
+| Project | What Islet uses |
+|---|---|
+| [Vorssaint Utils](https://github.com/vorssaint/vorssaint-utils) | The Dynamic Island and the 70+ Mac tools (Islet is a fork, GPL-3.0) |
+| [Textream](https://github.com/f/textream) | The teleprompter's speech-tracking engine (MIT) |
+| [Atticus](https://github.com/SaarthurR/atticus-mac) | Agent design and the keyboard, mouse and scroll code (MIT) |
+| [Plip](https://github.com/hussainn7/plip-oss) | The notch assistant's design, element map and pointing (MIT) |
+| [Parabolic](https://github.com/NickvisionApps/Parabolic) · [yt-dlp](https://github.com/yt-dlp/yt-dlp) | The downloader's design and its engine |
+
+Islet isn't affiliated with or endorsed by any of them, or by Apple. Full notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## ✦ License
+
+[GPL-3.0-or-later](LICENSE). Contributions welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).

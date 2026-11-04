@@ -7,9 +7,8 @@ import Foundation
 enum AppInfo {
     static let name = "Islet"
     static let copyright = "Free software under GPL-3.0-or-later. Built on Vorssaint Utils, Textream and Parabolic."
-    // ponytail: no hosted site or repo for this fork yet; set these before publishing one.
-    static let websiteURL = URL(string: "https://github.com/vorssaint/vorssaint-utils")!
-    static let repositoryURL = URL(string: "https://github.com/vorssaint/vorssaint-utils")!
+    static let websiteURL = URL(string: "https://islet-mac.netlify.app")!
+    static let repositoryURL = URL(string: "https://github.com/tbsjmd/islet")!
     static let coffeeURL = URL(string: "about:blank")!
     static let discordURL = URL(string: "about:blank")!
     static let socialURL = URL(string: "about:blank")!

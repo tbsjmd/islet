@@ -97,4 +97,4 @@ This page describes how the current version of Islet behaves. If the app's behav
 
 ## Questions
 
-If anything here is unclear, open a question in [GitHub issues](https://github.com/islet/islet-utils/issues), or have a look at [support](../SUPPORT.md).
+If anything here is unclear, open a question in [GitHub issues](https://github.com/tbsjmd/islet/issues), or have a look at [support](../SUPPORT.md).

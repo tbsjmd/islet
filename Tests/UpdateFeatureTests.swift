@@ -1148,8 +1148,8 @@ enum UpdateFeatureTests {
                "the beta channel offers the hotfix while the stable channel ignores it")
 
         // Release candidate selection
-        let dummyDMG = URL(string: "https://github.com/islet/islet-utils/releases/download/v3.3.4/Islet.dmg")!
-        let dummyBetaDMG = URL(string: "https://github.com/islet/islet-utils/releases/download/v3.3.4-beta.1/Islet.dmg")!
+        let dummyDMG = URL(string: "https://github.com/tbsjmd/islet/releases/download/v3.3.4/Islet.dmg")!
+        let dummyBetaDMG = URL(string: "https://github.com/tbsjmd/islet/releases/download/v3.3.4-beta.1/Islet.dmg")!
 
         let candidateList = [
             UpdateServiceSupport.ReleaseCandidate(tagName: "v3.3.4-beta.1", isPrerelease: true, isDraft: false, dmgURL: dummyBetaDMG, dmgExpectedBytes: 1000, body: "Beta notes"),
