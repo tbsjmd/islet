@@ -1,4 +1,0 @@
-# The website lives in site/; it is static, so there is nothing to build.
-[build]
-  publish = "site"
-  command = ""

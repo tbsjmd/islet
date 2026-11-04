@@ -1,0 +1,5 @@
+# The website: static files, nothing to install or build. Netlify uses site/ as
+# the base directory, so the Swift app at the repo root never reaches its build.
+[build]
+  publish = "."
+  command = "echo static"
