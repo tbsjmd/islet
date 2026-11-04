@@ -29,6 +29,10 @@ let parsed = AssistantActions.parse(reply: reply)
 check(parsed.text == "Opening it now.", "reply text without the block")
 check(parsed.actions == [.openApp("Safari"), .volume(100)], "actions parsed, clamped, non-web URL dropped")
 check(AssistantAction(kind: .quitApp("Slack")).needsConfirmation && !AssistantAction(kind: .volume(3)).needsConfirmation, "confirmation")
+let plan = AssistantPlan.parse("Sure.\n```json\n{\"say\":\"Opening File\",\"actions\":[{\"do\":\"point\",\"element\":2}],\"done\":false}\n```")
+check(plan.say == "Opening File" && plan.steps.count == 1 && !plan.done, "agent step parsed from a fenced reply")
+let plain = AssistantPlan.parse("It's 4pm in Tokyo.")
+check(plain.say == "It's 4pm in Tokyo." && plain.steps.isEmpty && plain.done, "a plain answer is a finished step")
 print("ASSISTANT ACTIONS CHECK OK")
 SWIFT
 # AssistantActions.swift uses AppKit types; the stubs stand in for the island services.

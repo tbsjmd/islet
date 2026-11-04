@@ -19,6 +19,11 @@ struct AssistantTurn: Identifiable, Equatable {
     var files: [URL] = []
     var pending: [AssistantAction] = []
     var sawScreen = false
+    /// What the agent did, one line per action.
+    var steps: [String] = []
+    var stepCount = 0
+    /// A question the agent is waiting on, shown with Do it and Stop.
+    var gate: String?
 }
 
 /// A setting kept in UserDefaults under `assistant.<name>`.
@@ -37,7 +42,7 @@ final class AssistantService: NSObject, ObservableObject {
     static let shared = AssistantService()
 
     enum Phase: Equatable { case idle, listening, thinking, speaking }
-    enum Engine: String, CaseIterable, Identifiable { case claudeCode, anthropicAPI, customServer; var id: String { rawValue } }
+    typealias Engine = AssistantEngine
     enum ScreenMode: String, CaseIterable, Identifiable { case automatic, always, never; var id: String { rawValue } }
     enum HotkeyMode: String, CaseIterable, Identifiable { case hold, toggle; var id: String { rawValue } }
     enum Connection: Equatable {
@@ -61,6 +66,12 @@ final class AssistantService: NSObject, ObservableObject {
     @AssistantPreference("history") private var storedHistory = 6
     @AssistantPreference("serverURL") private var storedServerURL = "http://localhost:11434/v1"
     @AssistantPreference("serverModel") private var storedServerModel = ""
+    @AssistantPreference("geminiModel") private var storedGeminiModel = "gemini-flash-latest"
+    // Agent
+    @AssistantPreference("control") private var storedControl = true
+    @AssistantPreference("askBeforeControl") private var storedAskBeforeControl = true
+    @AssistantPreference("showsWhere") private var storedShowsWhere = true
+    @AssistantPreference("maxSteps") private var storedMaxSteps = 20
     // Voice in
     @AssistantPreference("hotkey") private var storedHotkey = true
     @AssistantPreference("hotkeyMode") private var hotkeyModeRaw = HotkeyMode.hold.rawValue
@@ -86,6 +97,11 @@ final class AssistantService: NSObject, ObservableObject {
     var historyTurns: Int { get { storedHistory } set { objectWillChange.send(); storedHistory = max(0, min(10, newValue)) } }
     var serverURL: String { get { storedServerURL } set { objectWillChange.send(); storedServerURL = newValue } }
     var serverModel: String { get { storedServerModel } set { objectWillChange.send(); storedServerModel = newValue } }
+    var geminiModel: String { get { storedGeminiModel } set { objectWillChange.send(); storedGeminiModel = newValue } }
+    var controlEnabled: Bool { get { storedControl } set { objectWillChange.send(); storedControl = newValue } }
+    var asksBeforeControl: Bool { get { storedAskBeforeControl } set { objectWillChange.send(); storedAskBeforeControl = newValue } }
+    var showsWhere: Bool { get { storedShowsWhere } set { objectWillChange.send(); storedShowsWhere = newValue } }
+    var maxSteps: Int { get { storedMaxSteps } set { objectWillChange.send(); storedMaxSteps = max(3, min(50, newValue)) } }
     var hotkeyEnabled: Bool { get { storedHotkey } set { objectWillChange.send(); storedHotkey = newValue } }
     var hotkeyMode: HotkeyMode {
         get { HotkeyMode(rawValue: hotkeyModeRaw) ?? .hold }
@@ -111,6 +127,10 @@ final class AssistantService: NSObject, ObservableObject {
         get { Keychain.read("anthropic") }
         set { objectWillChange.send(); Keychain.write("anthropic", newValue) }
     }
+    var geminiKey: String {
+        get { Keychain.read("gemini") }
+        set { objectWillChange.send(); Keychain.write("gemini", newValue) }
+    }
     var serverKey: String {
         get { Keychain.read("server") }
         set { objectWillChange.send(); Keychain.write("server", newValue) }
@@ -120,10 +140,12 @@ final class AssistantService: NSObject, ObservableObject {
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
     private let synthesizer = AVSpeechSynthesizer()
-    private var brain: Process?
-    private var brainTask: URLSessionTask?
+    private var agent: AssistantAgent?
     /// Changes whenever a request is started or stopped, so a late answer is dropped.
     private var brainToken = UUID()
+    private var gateAnswer: ((Bool) -> Void)?
+    /// Set while the agent points and waits for the person; "Next" calls it.
+    @Published var waitingForPerson: (() -> Void)?
     private var monitors: [Any] = []
     private var holdWork: DispatchWorkItem?
     private var heldByHotkey = false
@@ -175,7 +197,8 @@ final class AssistantService: NSObject, ObservableObject {
                     return
                 }
                 self.heldByHotkey = self.hotkeyMode == .hold
-                if self.phase == .speaking || self.phase == .thinking { self.stop() }
+                // The shortcut stops a running task or a reply being read.
+                if self.phase == .speaking || self.phase == .thinking { self.stop(); return }
                 self.listen()
             }
             holdWork = work
@@ -274,8 +297,10 @@ final class AssistantService: NSObject, ObservableObject {
         stopAudio()
         task?.cancel(); task = nil
         brainToken = UUID()
-        brain?.terminate(); brain = nil
-        brainTask?.cancel(); brainTask = nil
+        agent?.cancel(); agent = nil
+        gateAnswer?(false); gateAnswer = nil
+        waitingForPerson = nil
+        if let index = turns.indices.last, turns[index].gate != nil { turns[index].gate = nil }
         synthesizer.stopSpeaking(at: .immediate)
         phase = .idle
     }
@@ -311,18 +336,68 @@ final class AssistantService: NSObject, ObservableObject {
         turns.append(turn)
         phase = .thinking
         let id = turn.id
-        let history = Array(turns.dropLast().suffix(historyTurns))
+        let history = turns.dropLast().suffix(historyTurns)
+            .map { "Person: \($0.request)\nYou: \($0.reply)" }.joined(separator: "\n")
         let wantsScreen = screenMode == .always || (screenMode == .automatic && Self.isAboutScreen(text))
+            || (screenMode != .never && Self.isTask(text))
         let token = UUID()
         brainToken = token
-        Task {
-            let screenshot = wantsScreen ? await Self.screenshotPNG() : nil
-            await MainActor.run {
-                guard self.brainToken == token else { return }
-                if let index = self.turns.firstIndex(where: { $0.id == id }) { self.turns[index].sawScreen = screenshot != nil }
-                self.think(text: text, history: history, screenshot: screenshot, turnID: id, token: token)
+        let brain = AssistantBrain(config: brainConfig, system: AssistantAgent.systemPrompt(service: self))
+        let agent = AssistantAgent(brain: brain, service: self, turnID: id)
+        self.agent = agent
+        Task { @MainActor in
+            let last = await agent.run(text, history: history, wantsScreen: wantsScreen)
+            guard self.brainToken == token else { return }
+            self.agent = nil
+            self.phase = .idle
+            self.updateTurn(id) { turn in
+                if turn.reply.isEmpty || last.hasPrefix("Stopped") || last.hasPrefix("I stopped") || last.hasPrefix("Okay") { turn.reply = last }
+                turn.gate = nil
+            }
+            if case .claudeCode = self.engine, last.contains("Claude") { self.refreshConnection() }
+            self.say(last)
+        }
+    }
+
+    private var brainConfig: AssistantBrainConfig {
+        AssistantBrainConfig(engine: engine, model: model, effort: effort, anthropicKey: anthropicKey,
+                             geminiKey: geminiKey, geminiModel: geminiModel, serverURL: serverURL,
+                             serverModel: serverModel, serverKey: serverKey)
+    }
+
+    /// Asks the person before the agent goes on; Stop answers no.
+    @MainActor
+    func ask(gate question: String, turnID: UUID) async -> Bool {
+        await withCheckedContinuation { continuation in
+            gateAnswer?(false)
+            updateTurn(turnID) { $0.gate = question }
+            speak(question)
+            gateAnswer = { [weak self] yes in
+                self?.gateAnswer = nil
+                self?.updateTurn(turnID) { $0.gate = nil }
+                continuation.resume(returning: yes)
             }
         }
+    }
+
+    func answerGate(_ yes: Bool) { gateAnswer?(yes) }
+
+    func updateTurn(_ id: UUID, _ change: (inout AssistantTurn) -> Void) {
+        guard let index = turns.firstIndex(where: { $0.id == id }) else { return }
+        change(&turns[index])
+    }
+
+    /// Says something mid-task, when replies are read aloud.
+    func speak(_ text: String) {
+        guard speaksReplies, lastWasVoice, !text.isEmpty else { return }
+        synthesizer.stopSpeaking(at: .immediate)
+        synthesizer.speak(utterance(text))
+    }
+
+    /// Requests to operate the Mac, which need a look at the screen.
+    static func isTask(_ text: String) -> Bool {
+        text.range(of: #"^(please |can you |could you )?(click|press|type|fill|scroll|go to|navigate|select|drag|move|close|reply|write|send|book|buy|order|sign|add|change|turn|set|make|create|delete|rename|organize|tidy|show me|how do i|how can i|where)\b|\b(for me|on my screen|in this|on this)\b"#,
+                   options: [.regularExpression, .caseInsensitive]) != nil
     }
 
     private func allows(_ kind: AssistantAction.Kind) -> Bool {
@@ -374,6 +449,11 @@ final class AssistantService: NSObject, ObservableObject {
             }
         case .anthropicAPI:
             return anthropicKey.isEmpty ? "Add your Anthropic API key in Settings → Dynamic Island → Assistant." : nil
+        case .geminiAPI:
+            return geminiKey.isEmpty ? "Add your Gemini API key in Settings → Dynamic Island → Assistant. It's free from Google AI Studio." : nil
+        case .geminiCLI:
+            return AssistantBrain.geminiCLI == nil || !AssistantBrain.geminiSignedIn
+                ? "Sign in with Google in Settings → Dynamic Island → Assistant." : nil
         case .customServer:
             return URL(string: serverURL)?.host == nil || serverModel.isEmpty
                 ? "Set the server address and model in Settings → Dynamic Island → Assistant." : nil
@@ -431,6 +511,16 @@ final class AssistantService: NSObject, ObservableObject {
         if error != nil { NSWorkspace.shared.open(URL(string: "https://claude.com/claude-code")!) }
     }
 
+    /// Installs Gemini CLI if needed and starts it, which signs in with Google.
+    func connectGemini() {
+        let command = AssistantBrain.geminiCLI.map { "'" + $0.path + "'" }
+            ?? "(command -v brew >/dev/null && brew install gemini-cli || npm install -g @google/gemini-cli) && gemini"
+        let script = "tell application \"Terminal\"\nactivate\ndo script \(AssistantActions.quoted(command))\nend tell"
+        var error: NSDictionary?
+        NSAppleScript(source: script)?.executeAndReturnError(&error)
+        if error != nil { NSWorkspace.shared.open(URL(string: "https://github.com/google-gemini/gemini-cli")!) }
+    }
+
     func signOut() {
         guard let claude = Self.claudeCLI else { return }
         let process = Process()
@@ -448,205 +538,6 @@ final class AssistantService: NSObject, ObservableObject {
     static func isAboutScreen(_ text: String) -> Bool {
         text.range(of: #"\b(screen|this|that|these|here|window|page|tab|button|menu|icon|click|where|error|message|dialog|email|code|selected|highlighted|what am i|what's on|what is on|see|look at|read)\b"#,
                    options: [.regularExpression, .caseInsensitive]) != nil
-    }
-
-    private func systemPrompt() -> String {
-        var prompt = """
-        You are Islet, a voice assistant that lives in the Mac's Dynamic Island. Replies are read aloud and shown in a \
-        small island, so answer in one to three short plain sentences: no markdown, no lists unless asked. \
-        If a screenshot is attached it is the person's screen right now. Never claim you did something you didn't.
-        """
-        if actionsEnabled { prompt += "\n\n" + AssistantActions.promptReference }
-        else { prompt += "\n\nYou can't take actions on the Mac; tell the person how to do things instead." }
-        let facts = remembers ? AssistantMemory.facts : []
-        if !facts.isEmpty { prompt += "\n\nWhat the person asked you to remember:\n- " + facts.joined(separator: "\n- ") }
-        let front = NSWorkspace.shared.frontmostApplication?.localizedName ?? "unknown"
-        prompt += "\n\nFrontmost app: \(front). Local time: \(Date().formatted(date: .abbreviated, time: .shortened))."
-        return prompt
-    }
-
-    private func userText(_ text: String, history: [AssistantTurn]) -> String {
-        let earlier = history.map { "Person: \($0.request)\nYou: \($0.reply)" }.joined(separator: "\n")
-        return (earlier.isEmpty ? "" : "Earlier in this chat:\n\(earlier)\n\n") + text
-    }
-
-    /// API model IDs for the three sizes the settings offer.
-    static func apiModel(_ size: String) -> String {
-        switch size {
-        case "opus": return "claude-opus-5-5"
-        case "sonnet": return "claude-sonnet-5-5"
-        default: return "claude-haiku-5-5"
-        }
-    }
-
-    private func think(text: String, history: [AssistantTurn], screenshot: Data?, turnID: UUID, token: UUID) {
-        let prompt = userText(text, history: history)
-        let done: (String?, String?) -> Void = { [weak self] reply, failure in
-            DispatchQueue.main.async { self?.finish(turnID: turnID, reply: reply, failure: failure, token: token) }
-        }
-        switch engine {
-        case .claudeCode: askClaudeCode(prompt, screenshot: screenshot, done: done)
-        case .anthropicAPI: askAnthropic(prompt, screenshot: screenshot, done: done)
-        case .customServer: askServer(prompt, screenshot: screenshot, done: done)
-        }
-    }
-
-    private func askClaudeCode(_ prompt: String, screenshot: Data?, done: @escaping (String?, String?) -> Void) {
-        guard let claude = Self.claudeCLI else { return done(nil, "Claude Code isn't installed.") }
-        var content: [[String: Any]] = []
-        if let screenshot {
-            content.append(["type": "image", "source": ["type": "base64", "media_type": "image/png",
-                                                        "data": screenshot.base64EncodedString()]])
-        }
-        content.append(["type": "text", "text": prompt])
-        let message: [String: Any] = ["type": "user", "message": ["role": "user", "content": content]]
-        guard let line = try? JSONSerialization.data(withJSONObject: message) else { return done(nil, nil) }
-
-        let process = Process()
-        process.executableURL = claude
-        // No tools, settings, MCP servers or saved sessions: the reply comes
-        // back as text and actions run only through Islet's own list.
-        process.arguments = ["-p", "--model", model, "--effort", effort,
-                             "--input-format", "stream-json", "--output-format", "stream-json",
-                             "--verbose", "--tools", "", "--setting-sources", "", "--no-session-persistence",
-                             "--strict-mcp-config", "--disable-slash-commands", "--system-prompt", systemPrompt()]
-        process.currentDirectoryURL = FileManager.default.temporaryDirectory
-        var environment = ProcessInfo.processInfo.environment
-        Self.useClaudePlan(&environment)
-        process.environment = environment
-        let input = Pipe(), output = Pipe()
-        process.standardInput = input
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-        brain = process
-        process.terminationHandler = { _ in
-            let reply = Self.result(from: output.fileHandleForReading.readDataToEndOfFile())
-            done(reply, reply == nil ? "Claude didn't answer. Check the connection in Settings → Dynamic Island → Assistant." : nil)
-        }
-        do {
-            try process.run()
-            input.fileHandleForWriting.write(line + Data("\n".utf8))
-            try? input.fileHandleForWriting.close()
-        } catch {
-            done(nil, "Claude Code didn't start.")
-        }
-    }
-
-    /// The final `result` event of Claude Code's stream.
-    static func result(from data: Data) -> String? {
-        for line in String(decoding: data, as: UTF8.self).split(separator: "\n").reversed() {
-            guard let event = try? JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any],
-                  event["type"] as? String == "result" else { continue }
-            if event["is_error"] as? Bool == true { return nil }
-            return event["result"] as? String
-        }
-        return nil
-    }
-
-    private func askAnthropic(_ prompt: String, screenshot: Data?, done: @escaping (String?, String?) -> Void) {
-        var content: [[String: Any]] = []
-        if let screenshot {
-            content.append(["type": "image", "source": ["type": "base64", "media_type": "image/png",
-                                                        "data": screenshot.base64EncodedString()]])
-        }
-        content.append(["type": "text", "text": prompt])
-        let body: [String: Any] = ["model": Self.apiModel(model), "max_tokens": 1024, "system": systemPrompt(),
-                                   "messages": [["role": "user", "content": content]]]
-        var request = URLRequest(url: URL(string: "https://api.anthropic.com/v1/messages")!)
-        request.httpMethod = "POST"
-        request.setValue(anthropicKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        request.timeoutInterval = 90
-        send(request, done: done) { json in
-            (json["content"] as? [[String: Any]])?.compactMap { $0["text"] as? String }.joined()
-        }
-    }
-
-    /// Any OpenAI-compatible server: Ollama, LM Studio, llama.cpp or a hosted one.
-    private func askServer(_ prompt: String, screenshot: Data?, done: @escaping (String?, String?) -> Void) {
-        let base = serverURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
-        guard let url = URL(string: base + "/chat/completions") else { return done(nil, "The server address isn't valid.") }
-        var content: [[String: Any]] = [["type": "text", "text": prompt]]
-        if let screenshot {
-            content.append(["type": "image_url", "image_url": ["url": "data:image/png;base64," + screenshot.base64EncodedString()]])
-        }
-        let body: [String: Any] = ["model": serverModel,
-                                   "messages": [["role": "system", "content": systemPrompt()],
-                                                ["role": "user", "content": content]]]
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        if !serverKey.isEmpty { request.setValue("Bearer " + serverKey, forHTTPHeaderField: "Authorization") }
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        request.timeoutInterval = 180
-        send(request, done: done) { json in
-            ((json["choices"] as? [[String: Any]])?.first?["message"] as? [String: Any])?["content"] as? String
-        }
-    }
-
-    private func send(_ request: URLRequest, done: @escaping (String?, String?) -> Void,
-                      reply: @escaping ([String: Any]) -> String?) {
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            let json = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
-            if let text = reply(json), (response as? HTTPURLResponse)?.statusCode == 200 { return done(text, nil) }
-            let message = ((json["error"] as? [String: Any])?["message"] as? String) ?? error?.localizedDescription
-                ?? "The model didn't answer (\((response as? HTTPURLResponse)?.statusCode ?? 0))."
-            done(nil, message)
-        }
-        brainTask = task
-        task.resume()
-    }
-
-    private func finish(turnID: UUID, reply: String?, failure: String?, token: UUID) {
-        guard brainToken == token else { return }   // stopped or replaced
-        brain = nil
-        brainTask = nil
-        phase = .idle
-        guard let index = turns.firstIndex(where: { $0.id == turnID }) else { return }
-        guard let reply else {
-            turns[index].reply = failure ?? "The model didn't answer."
-            if engine == .claudeCode { refreshConnection() }
-            return
-        }
-        let parsed = AssistantActions.parse(reply: reply)
-        turns[index].reply = parsed.text
-        for kind in parsed.actions where allows(kind) {
-            let action = AssistantAction(kind: kind)
-            if needsConfirmation(action) {
-                turns[index].pending.append(action)
-            } else {
-                let result = AssistantActions.run(kind)
-                turns[index].files += result.files
-                if turns[index].reply.isEmpty { turns[index].reply = result.message }
-            }
-        }
-        say(turns[index].reply)
-    }
-
-    // MARK: Screen and voice
-
-    /// The display under the pointer, scaled down: enough to read, cheap to send.
-    static func screenshotPNG() async -> Data? {
-        guard CGPreflightScreenCaptureAccess() else { return nil }
-        let point = NSEvent.mouseLocation
-        let screen = NSScreen.screens.first { $0.frame.contains(point) } ?? NSScreen.main
-        guard let number = screen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber,
-              let image = await ScreenshotCaptureEngine.captureDisplay(CGDirectDisplayID(number.uint32Value),
-                                                                     includePointer: true, hideIsletWindows: true,
-                                                                     protectedWindowIDs: [])
-        else { return nil }
-        let scale = min(1, 1600 / CGFloat(max(image.width, 1)))
-        let size = NSSize(width: CGFloat(image.width) * scale, height: CGFloat(image.height) * scale)
-        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(size.width), pixelsHigh: Int(size.height),
-                                         bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
-                                         colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) else { return nil }
-        NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
-        NSGraphicsContext.current?.cgContext.draw(image, in: CGRect(origin: .zero, size: size))
-        NSGraphicsContext.restoreGraphicsState()
-        return rep.representation(using: .png, properties: [:])
     }
 
     /// Voices for the speech language, best quality first.

@@ -18,8 +18,10 @@ Unlicense), which Islet runs from your installation or downloads on first use.
 The Assistant (Sources/Islet/Services/Assistant) follows the design of Atticus
 (https://github.com/SaarthurR/atticus-mac, MIT, Copyright (c) 2026 SaarthurR) and
 Plip (https://github.com/hussainn7/plip-oss, MIT, Copyright (c) 2026 Hussain): the
-hold-to-talk shortcut, instant commands, app-name aliases, screen-aware questions and
-ask-first actions. It is a new Swift implementation; no code from either is included.
+hold-to-talk shortcut, instant commands, app-name aliases, screen-aware questions,
+the step-by-step agent loop, the element map, pointing on screen and ask-first actions.
+AssistantHands.swift adapts Atticus's key-combo parser, risky-key check and
+front-of-screen mouse, drag and scroll events (MIT, Copyright (c) 2026 SaarthurR).
 
 ## Textream
 The teleprompter's speech engine (Sources/Islet/Services/Teleprompter/Textream*.swift)

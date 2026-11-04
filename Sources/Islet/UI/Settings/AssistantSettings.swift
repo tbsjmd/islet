@@ -11,10 +11,13 @@ struct AssistantSettingsControls: View {
     @State private var facts = AssistantMemory.facts
     @State private var anthropicKey = ""
     @State private var serverKey = ""
+    @State private var geminiKey = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             brain
+            Divider()
+            agent
             Divider()
             voiceIn
             Divider()
@@ -30,6 +33,7 @@ struct AssistantSettingsControls: View {
             facts = AssistantMemory.facts
             anthropicKey = assistant.anthropicKey
             serverKey = assistant.serverKey
+            geminiKey = assistant.geminiKey
         }
     }
 
@@ -38,23 +42,39 @@ struct AssistantSettingsControls: View {
     private var brain: some View {
         VStack(alignment: .leading, spacing: 10) {
             heading("Brain", "Instant commands never use AI. Everything else goes to the model you pick here.")
-            SettingsChoiceRow(symbol: "brain", title: "Answers come from", selection: $assistant.engine) {
-                Text("Claude plan").tag(AssistantService.Engine.claudeCode)
-                Text("API key").tag(AssistantService.Engine.anthropicAPI)
-                Text("Local or custom").tag(AssistantService.Engine.customServer)
+            SettingsRow(symbol: "brain", title: "Thinks with") {
+                Picker("", selection: $assistant.engine) {
+                    Text("Claude · your plan").tag(AssistantEngine.claudeCode)
+                    Text("Claude · API key").tag(AssistantEngine.anthropicAPI)
+                    Text("Gemini · Google sign-in").tag(AssistantEngine.geminiCLI)
+                    Text("Gemini · API key").tag(AssistantEngine.geminiAPI)
+                    Text("Local or custom server").tag(AssistantEngine.customServer)
+                }
+                .labelsHidden().fixedSize()
             }
             switch assistant.engine {
             case .claudeCode: claudeConnection
             case .anthropicAPI:
                 secureField("Anthropic API key", text: $anthropicKey, prompt: "sk-ant-…") { assistant.anthropicKey = $0 }
                 caption("Billed to your Anthropic Console account. Get a key at console.anthropic.com. It's kept in your keychain.")
+            case .geminiAPI:
+                secureField("Gemini API key", text: $geminiKey, prompt: "AIza…") { assistant.geminiKey = $0 }
+                HStack(spacing: 8) {
+                    caption("Free from Google AI Studio with any Google account. It's kept in your keychain.")
+                    Button("Get a free key") { NSWorkspace.shared.open(URL(string: "https://aistudio.google.com/apikey")!) }
+                        .controlSize(.small)
+                }
+                field("Model", text: $assistant.geminiModel, prompt: "gemini-flash-latest")
+            case .geminiCLI:
+                geminiConnection
+                field("Model", text: $assistant.geminiModel, prompt: "gemini-flash-latest")
             case .customServer:
                 field("Server", text: $assistant.serverURL, prompt: "http://localhost:11434/v1")
                 field("Model", text: $assistant.serverModel, prompt: "llama3.2-vision")
                 secureField("API key (optional)", text: $serverKey, prompt: "Only if the server needs one") { assistant.serverKey = $0 }
                 caption("Any OpenAI-compatible server: Ollama, LM Studio, llama.cpp or a hosted one. Pick a vision model for questions about the screen.")
             }
-            if assistant.engine != .customServer {
+            if [.claudeCode, .anthropicAPI].contains(assistant.engine) {
                 SettingsChoiceRow(symbol: "gauge.with.dots.needle.50percent", title: "Model", selection: $assistant.model) {
                     Text("Haiku").tag("haiku")
                     Text("Sonnet").tag("sonnet")
@@ -98,6 +118,57 @@ struct AssistantSettingsControls: View {
             caption(assistant.connection == .notInstalled
                 ? "Connect installs Claude Code in Terminal, then opens your browser to sign in with your Claude account. No API key, and it runs on your Pro or Max plan."
                 : "Connect opens Terminal and then your browser to sign in with your Claude account. Come back and click Check again.")
+        }
+    }
+
+    @ViewBuilder private var geminiConnection: some View {
+        let installed = AssistantBrain.geminiCLI != nil, signedIn = installed && AssistantBrain.geminiSignedIn
+        SettingsRow(symbol: "person.crop.circle.badge.checkmark", title: "Google",
+                    caption: signedIn ? "Signed in through Gemini CLI. Uses your Google account's Gemini plan or free quota."
+                        : installed ? "Gemini CLI is installed but signed out." : "Gemini CLI isn't installed.") {
+            if signedIn {
+                Button("Check again") { assistant.objectWillChange.send() }.controlSize(.small)
+            } else {
+                HStack(spacing: 6) {
+                    Button("Check again") { assistant.objectWillChange.send() }.controlSize(.small)
+                    Button("Sign in", action: assistant.connectGemini).buttonStyle(.borderedProminent).controlSize(.small)
+                }
+            }
+        }
+        if !signedIn {
+            caption("Sign in opens Terminal\(installed ? "" : ", installs Gemini CLI with Homebrew or npm,") and starts it; choose Sign in with Google there, then come back and click Check again.")
+        }
+    }
+
+    // MARK: Agent
+
+    private var agent: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            heading("Doing things for you", "Ask “do this for me” and it works step by step; ask “how do I…” and it points instead. Esc or ⌃⌥ stops it.")
+            SettingsRow(symbol: "cursorarrow.click.2", title: "Control my mouse and keyboard",
+                        caption: "Clicks, types, presses keys and scrolls in the front app, like you would.") {
+                Toggle("", isOn: $assistant.controlEnabled).labelsHidden().toggleStyle(.switch)
+            }
+            if assistant.controlEnabled {
+                SettingsRow(symbol: "hand.raised", title: "Ask before it takes control", caption: "Once per task.") {
+                    Toggle("", isOn: $assistant.asksBeforeControl).labelsHidden().toggleStyle(.switch)
+                }
+                if !AXIsProcessTrusted() {
+                    HStack(spacing: 8) {
+                        caption("Needs Accessibility permission.")
+                        Button("Allow") {
+                            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+                        }
+                        .controlSize(.small)
+                    }
+                }
+            }
+            SettingsRow(symbol: "scope", title: "Show me where", caption: "Rings and labels on screen for “where is…” and “how do I…”, one step at a time.") {
+                Toggle("", isOn: $assistant.showsWhere).labelsHidden().toggleStyle(.switch)
+            }
+            SettingsRow(symbol: "repeat", title: "Most steps per task", caption: "It stops and asks to keep going after this many.") {
+                Stepper("\(assistant.maxSteps)", value: $assistant.maxSteps, in: 3...50)
+            }
         }
     }
 
@@ -199,7 +270,7 @@ struct AssistantSettingsControls: View {
                     Button("Allow") { CGRequestScreenCaptureAccess() }.controlSize(.small)
                 }
             }
-            SettingsRow(symbol: "hand.raised", title: "Let it take actions",
+            SettingsRow(symbol: "square.grid.2x2", title: "Mac actions",
                         caption: "Open apps and links, search, set volume, appearance and timers, find files, run Shortcuts and add reminders.") {
                 Toggle("", isOn: $assistant.actionsEnabled).labelsHidden().toggleStyle(.switch)
             }

@@ -44,11 +44,25 @@ The island opens to the Assistant, your words appear as you speak them, and when
 
 App names are forgiving: "Chrome", "VS Code", "settings", "browser" and "texts" all go where you'd expect.
 
-**Everything else goes to Claude, on the plan you already have.** For questions and requests that need real thought, Islet hands your words to [Claude Code](https://claude.com/claude-code), the command-line tool you sign in to with your Claude account. There's no API key to create and nothing extra to pay for: it runs on the plan you're already on. You choose the model from the ✦ menu: **Haiku** (the default, fast and inexpensive, a typical question costs a fraction of a cent of plan usage), **Sonnet** (smarter) or **Opus** (the most capable).
+**Everything else goes to the AI you connect.** Settings → Dynamic Island → Assistant offers five ways to give it a brain, and you only need one:
+
+- **Claude, on your Claude plan.** Click **Connect** and Islet signs you in to [Claude Code](https://claude.com/claude-code) with your Claude account (installing it first if needed). No API key; it runs on the Pro or Max plan you already have.
+- **Claude, with an API key** from the Anthropic Console, kept in your keychain.
+- **Gemini, with your Google sign-in.** Click **Sign in** and Islet sets up Gemini CLI so you can sign in with Google.
+- **Gemini, with an API key.** Free from Google AI Studio with any Google account.
+- **A local or custom model** on any OpenAI-compatible server, such as Ollama or LM Studio.
+
+For Claude you choose **Haiku** (the default: fast and inexpensive, a typical question uses a fraction of a cent of plan usage), **Sonnet** or **Opus**, and how hard it thinks.
 
 **It can see your screen, but only when you ask about it.** Say "what does this error mean?", "summarize this page", "what am I looking at?" or "where's the export button?" and Islet attaches a picture of the display your pointer is on, scaled down so it's quick to send. Questions that aren't about the screen don't send one. Each answer that used the screen is marked with a small eye so you always know.
 
-**It does things, and it asks before anything risky.** Claude's replies can include actions from a short, fixed list that Islet knows how to perform: opening apps and links, searching the web or your files, changing the volume or the appearance, starting timers, playing music, running a Shortcut, adding a reminder, or remembering something. Islet never gives the model a shell, file access or the ability to run arbitrary commands. Anything that closes, runs or writes something (quitting an app, running a Shortcut, adding a reminder, opening a program file) shows up as a card with **Do it** and **Not now** buttons and waits for you.
+**It does the work for you.** Ask for a task ("reply to this email saying Thursday works", "fill in this form with my address", "turn on Night Shift", "add these three items to my cart") and the Assistant works through it the way a person would. Each step it looks at your screen and at a numbered map of the buttons, menus and fields in the app in front of you. It decides what to do, then clicks, types, presses keys, scrolls or drags, and looks again, until the task is done. The island lists every step as it happens. Your pointer moves where it clicks, and a quick white ring flashes on each spot, so you can always see what it's doing. Press **Esc**, press **⌃⌥** again or click the stop button to halt it instantly.
+
+**It shows you how, too.** Ask "how do I export this as a PDF?" or "where's the setting for Night Shift?" and instead of doing it, the Assistant draws a glowing ring and a label over the exact spot on your screen. When you click there, it looks again and shows you the next step, until you're done. You learn the app; it never takes over.
+
+**It asks before anything risky.** By default it asks once, at the start of a task, before it uses your mouse and keyboard. Any step that sends, posts, buys, pays, deletes, submits a form or can't be undone waits for your **Do it**. So do keyboard shortcuts that quit, close or delete, and Mac actions such as quitting apps, running a Shortcut or adding a reminder. It never types into password fields and won't enter passwords or card numbers for you. The model can't run commands or scripts; everything it does goes through Islet's own short list of actions. If you'd rather it never touched the mouse and keyboard, switch that off and it will only point.
+
+**Quick Mac actions.** Besides working in apps, it can open apps and links, search the web or your files, change the volume or appearance, start timers, play music, run a Shortcut, add a reminder, or remember something, all without clicking through anything.
 
 **It remembers you.** Tell it "remember that my sister's name is Ana" or "remember I work in Pacific time" and that fact is included with every request from then on. The ✦ menu lists what it remembers, and you can forget any item with a click.
 
@@ -58,7 +72,7 @@ App names are forgiving: "Chrome", "VS Code", "settings", "browser" and "texts" 
 
 **It shows its state in the closed island.** While it listens, the island reads *Listening*. While Claude thinks, *Thinking*. While it speaks, *Talking*. Click the island at any point to open the Assistant page; press the stop button to cut it off.
 
-**Privacy.** Your voice is turned into text by Apple's speech recognition on your Mac; audio isn't uploaded. What leaves your Mac is the text of a question you sent to Claude and, only when you asked about the screen, one screenshot, both sent through your own Claude Code sign-in.
+**Privacy.** Your voice is turned into text by Apple's speech recognition on your Mac; audio isn't uploaded. What leaves your Mac is your question and, when you asked about the screen or for a task on it, a screenshot of that display and a list of the front app's buttons and fields. They go only to the AI you connected, through your own sign-in or key. Password fields are never read.
 
 The Assistant takes the best ideas from two open-source projects, [Atticus](https://github.com/SaarthurR/atticus-mac) and [Plip](https://github.com/hussainn7/plip-oss): hold-to-talk from the notch, instant commands that skip the AI, screen-aware answers on the plan you already pay for, and actions that ask first. It is a fresh Swift implementation built into the island.
 
@@ -142,7 +156,7 @@ Beyond the island, Islet replaces a drawer full of small utilities. Each is a fe
 
 Islet has no account, no analytics and no tracking. Your settings, clipboard history, notes and memories stay on your Mac.
 
-The network is used only by things you start yourself: questions you send to the Assistant (through your own Claude Code, with a screenshot only when you asked about the screen), video downloads and the one-time yt-dlp download, the speed test, Homebrew actions, App Store and app update checks, and optional online lyrics. Speech recognition for the Assistant and the Teleprompter happens on your Mac.
+The network is used only by things you start yourself: questions and tasks you send to the Assistant (to the AI you connected, with a screenshot only when it's about the screen), video downloads and the one-time yt-dlp download, the speed test, Homebrew actions, App Store and app update checks, and optional online lyrics. Speech recognition for the Assistant and the Teleprompter happens on your Mac.
 
 Permissions are asked for only when a feature you installed needs them, and Islet explains each one in plain words. The Settings → Permissions page shows which features use which permission, and tells you when a permission you granted is no longer needed by anything.
 
@@ -152,7 +166,8 @@ Here is what the headline features ask for:
 |---|---|---|
 | Dynamic Island | Accessibility | To read media keys, the pointer and the windows around the island |
 | Assistant | Microphone, Speech Recognition | To hear your question while you hold ⌃⌥ |
-| Assistant | Screen Recording | Only for questions about your screen |
+| Assistant | Screen Recording | For questions about your screen and for tasks on it |
+| Assistant | Accessibility | To click, type and read the front app's buttons when doing tasks |
 | Assistant | Automation (System Events, Reminders) | Only for dark mode and reminders, when you ask |
 | Teleprompter | Microphone, Speech Recognition | Only for Word Tracking and Voice-Activated modes |
 | Video Downloader | None | It writes to your Downloads folder |
@@ -167,7 +182,7 @@ Here is what the headline features ask for:
 4. A short setup lets you choose a starting set of features; the Dynamic Island is always included. You can add or remove anything later in Settings → Features.
 5. Hover over the island. Then hold **⌃ control + ⌥ option** and say hello.
 
-**For the Assistant's AI answers**, install [Claude Code](https://claude.com/claude-code) and sign in once in Terminal by running `claude`. Instant commands work without it.
+**For the Assistant's AI answers and tasks**, open Settings → Dynamic Island → Assistant and connect Claude or Gemini, by signing in or pasting an API key. Instant commands work without it. To let it click and type for you, allow Islet in System Settings → Privacy & Security → Accessibility; for screen questions, allow Screen Recording too.
 
 **Requirements.** A Mac with Apple Silicon running macOS 14 Sonoma or newer. The island looks and works best on a MacBook with a notch; other Macs get a floating capsule in the menu bar.
 
@@ -175,9 +190,9 @@ Here is what the headline features ask for:
 
 ## Questions
 
-**Does the Assistant cost money?** Instant commands are free and offline. AI answers use your existing Claude plan through Claude Code, with no API key. A typical Haiku question uses a fraction of a cent of plan usage; Sonnet and Opus use more.
+**Does the Assistant cost money?** Instant commands are free and offline. With the Claude or Google sign-in it uses the plan or free quota you already have; with an API key, your provider bills you directly. A typical Haiku question uses a fraction of a cent; multi-step tasks use one request per step.
 
-**Can the Assistant delete my files or send emails?** No. It can only perform the specific actions on its list, none of which delete or send anything, and the ones that quit, run or write something wait for your "Do it".
+**Can the Assistant delete my files or send emails?** Only with your say-so. When it's operating an app, any step that sends, deletes, buys or can't be undone stops and waits for your "Do it", and it can't run commands or scripts at all.
 
 **Does ⌃⌥ get in the way of my other shortcuts?** Islet only starts listening after you've held those two keys by themselves for about a third of a second. Pressing another key or clicking within that moment cancels it, so quick shortcuts like ⌃⌥→ and modifier-drags keep working.
 

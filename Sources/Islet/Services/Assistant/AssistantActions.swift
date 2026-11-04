@@ -272,6 +272,27 @@ enum AssistantActions {
     }
 }
 
+/// What the model returns each step.
+struct AssistantPlan {
+    var say: String
+    var steps: [[String: Any]]
+    var done: Bool
+
+    /// The JSON object the prompt asks for, wherever it sits in the reply. A
+    /// reply that isn't one is a plain answer, with any old ```actions block.
+    static func parse(_ reply: String) -> AssistantPlan {
+        let cleaned = reply.replacingOccurrences(of: "```json", with: "```")
+        if let start = cleaned.firstIndex(of: "{"), let end = cleaned.lastIndex(of: "}"), start < end,
+           let object = try? JSONSerialization.jsonObject(with: Data(cleaned[start...end].utf8)) as? [String: Any] {
+            return AssistantPlan(say: (object["say"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
+                                 steps: object["actions"] as? [[String: Any]] ?? [],
+                                 done: object["done"] as? Bool ?? true)
+        }
+        let old = AssistantActions.parse(reply: reply)
+        return AssistantPlan(say: old.text, steps: [], done: true)
+    }
+}
+
 /// What the person asked the assistant to remember, fed into every request.
 enum AssistantMemory {
     private static let key = "assistantMemory"

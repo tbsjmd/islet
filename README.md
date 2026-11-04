@@ -14,8 +14,11 @@
 Hold <kbd>⌃ control</kbd> + <kbd>⌥ option</kbd>, ask out loud, let go. Or type into the Assistant page.
 
 - **Instant commands, no AI:** "open Spotify", "quit Slack", "volume 30", "mute", "dark mode on", "search for…", "next song", "set a 10 minute timer", "run my Log Water shortcut", "find my lease PDF", "remind me to call Sam in 20 minutes".
-- **Sees your screen when you ask about it:** "what's this error?", "summarize this page". Anything else goes to the [Claude Code](https://claude.com/claude-code) you're already signed in to, so it runs on your Claude plan with no API key. Pick Haiku, Sonnet or Opus.
-- **Does things, asks first:** replies can open apps and links, search the web or Spotlight, change volume or appearance, start timers, run Shortcuts and add reminders. Quitting apps, running shortcuts and adding reminders wait for your "Do it".
+- **Sees your screen when you ask about it:** "what's this error?", "summarize this page". Anything else goes to the model you chose.
+- **Does it for you:** "reply to this email saying Thursday works", "fill in this form with my address", "turn on Night Shift". It looks at the screen and a map of the front app's buttons and fields, then clicks, types, presses keys and scrolls step by step until it's done, showing each step in the island. Esc or ⌃⌥ stops it.
+- **Shows you how:** "how do I export this as a PDF?" draws a ring and a label over the exact spot and moves to the next step when you click it.
+- **Asks first:** anything that sends, buys, deletes or can't be undone waits for your "Do it", and by default it asks once before it takes over the mouse and keyboard. It never types into password fields. It can also open apps and links, search, set volume, dark mode and timers, find files, run Shortcuts and add reminders.
+- **Your sign-in or key:** Claude through your Claude plan (Connect signs you in), a Claude API key, Gemini through your Google sign-in (Gemini CLI) or a free Gemini API key, or a local model server. Everything is in Settings → Dynamic Island → Assistant.
 - **Remembers you:** "remember I prefer aisle seats" goes into every later ask; forget items from the ✦ menu.
 - Replies are read aloud after spoken asks (toggle with the speaker button). Speech is recognized on your Mac. The closed island shows Listening, Thinking and Talking.
 

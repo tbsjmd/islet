@@ -27,7 +27,12 @@ struct NotchAssistantView: View {
                         if assistant.phase == .thinking {
                             HStack(spacing: 6) {
                                 ProgressView().controlSize(.small)
-                                Text("Thinking…").font(.system(size: 12)).foregroundStyle(.white.opacity(0.5))
+                                Text(assistant.waitingForPerson != nil ? "Your turn: click the highlighted spot."
+                                     : (assistant.turns.last?.stepCount ?? 0) > 0 ? "Working… step \((assistant.turns.last?.stepCount ?? 0) + 1)" : "Thinking…")
+                                    .font(.system(size: 12)).foregroundStyle(.white.opacity(0.5))
+                                if assistant.waitingForPerson != nil {
+                                    NotchPillButton(title: "Next") { assistant.waitingForPerson?() }
+                                }
                             }
                             .id("live")
                         }
@@ -60,7 +65,9 @@ struct NotchAssistantView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Hold ⌃ control + ⌥ option and ask out loud.")
                 .font(.system(size: 13, weight: .semibold))
-            ForEach(["“What's this error on my screen?”", "“Open Spotify” · “Volume 30” · “Dark mode on”",
+            ForEach(["“What's this error on my screen?”", "“How do I export this as a PDF?” (it points)",
+                     "“Reply to this email saying Thursday works” (it types, you send)",
+                     "“Open Spotify” · “Volume 30” · “Dark mode on”",
                      "“Find my lease PDF”", "“Remind me to call Sam in 20 minutes”",
                      "“Remember I prefer aisle seats”"], id: \.self) {
                 Text($0).font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
@@ -147,6 +154,25 @@ private struct NotchAssistantTurnView: View {
                 Text(turn.request).font(.system(size: 12)).lineLimit(2)
             }
             .foregroundStyle(.white.opacity(0.5))
+            if !turn.steps.isEmpty {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(turn.steps.suffix(6).enumerated()), id: \.offset) { _, step in
+                        Label(step, systemImage: "checkmark.circle")
+                            .font(.system(size: 11)).foregroundStyle(.white.opacity(0.5)).lineLimit(1)
+                    }
+                }
+            }
+            if let gate = turn.gate {
+                HStack(spacing: 6) {
+                    Text(gate).font(.system(size: 12, weight: .medium)).foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 4)
+                    NotchPillButton(title: "Stop") { assistant.answerGate(false) }
+                    NotchPillButton(title: "Do it", prominent: true) { assistant.answerGate(true) }
+                }
+                .padding(8)
+                .modifier(NotchControlSurface(cornerRadius: 10, interactive: false))
+            }
             if !turn.reply.isEmpty {
                 Text(turn.reply)
                     .font(.system(size: 14))

@@ -27,7 +27,9 @@ enum NotchHeadlineActivity {
         if activity == .assistant {
             switch AssistantService.shared.phase {
             case .listening: return "Listening"
-            case .thinking: return "Thinking"
+            case .thinking:
+                let step = AssistantService.shared.turns.last?.stepCount ?? 0
+                return AssistantService.shared.waitingForPerson != nil ? "Your turn" : step > 0 ? "Step \(step + 1)" : "Thinking"
             case .speaking: return "Talking"
             case .idle: return ""
             }
