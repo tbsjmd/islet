@@ -124,7 +124,16 @@ enum SettingsDirectory {
             SettingsSidebarSection(id: 2, title: categories.files, items: rows(2) + byGroup.files),
         ]
         let remaining = grouped.filter { ![0, 1, 2, 4].contains($0.id) }
-        return [featured[0]] + featured.dropFirst().filter { !$0.items.isEmpty } + remaining
+        // Islet's headline features lead the sidebar.
+        let headline = SettingsSidebarSection(id: 9, title: "Islet", items: [
+            SettingsSidebarItem(id: .page(.assistant), destination: FeatureSettingsDestination(.assistant),
+                                title: "Assistant", icon: "waveform.circle"),
+            SettingsSidebarItem(id: .page(.teleprompter), destination: FeatureSettingsDestination(.teleprompter),
+                                title: "Teleprompter", icon: "text.viewfinder"),
+            SettingsSidebarItem(id: .page(.videoDownloader), destination: FeatureSettingsDestination(.videoDownloader),
+                                title: "Video Downloader", icon: "arrow.down.to.line.circle"),
+        ])
+        return [headline, featured[0]] + featured.dropFirst().filter { !$0.items.isEmpty } + remaining
     }
 
     static func sidebarItems(_ s: Strings,

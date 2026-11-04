@@ -575,6 +575,9 @@ struct SettingsView: View {
             }
         case .features: FeatureHubSettings()
         case .textSnippets: TextSnippetsSettings()
+        case .assistant: AssistantSettingsPage()
+        case .teleprompter: TeleprompterSettingsPage()
+        case .videoDownloader: VideoDownloaderSettingsPage()
         case .notch: NotchSettings()
         case .notchMascot: NotchMascotSettings()
         case .radialMenu: RadialMenuSettings()

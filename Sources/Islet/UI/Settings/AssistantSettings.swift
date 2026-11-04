@@ -14,18 +14,13 @@ struct AssistantSettingsControls: View {
     @State private var geminiKey = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            brain
-            Divider()
-            agent
-            Divider()
-            voiceIn
-            Divider()
-            voiceOut
-            Divider()
-            screenAndSafety
-            Divider()
-            memory
+        VStack(alignment: .leading, spacing: 20) {
+            SettingsCard { brain }
+            SettingsCard { agent }
+            SettingsCard { voiceIn }
+            SettingsCard { voiceOut }
+            SettingsCard { screenAndSafety }
+            SettingsCard { memory }
         }
         .toggleStyle(TrailingSwitchToggleStyle())
         .onAppear {

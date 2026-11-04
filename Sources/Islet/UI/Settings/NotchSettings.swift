@@ -546,7 +546,7 @@ struct NotchSettings: View {
             NotchWatchSettingsControls()
                 .toggleStyle(TrailingSwitchToggleStyle())
         case .assistant:
-            AssistantSettingsControls()
+            Button("Open Assistant Settings") { SettingsRouter.shared.request(FeatureSettingsDestination(.assistant)) }
         case .mixer, .system, .tools, .teleprompter, .videoDownloader:
             EmptyView()
         }
