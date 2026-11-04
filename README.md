@@ -5,10 +5,21 @@
 <h1 align="center">Islet</h1>
 
 <p align="center">
-  A teleprompter, a video downloader and a dozen Mac utilities, living in the Dynamic Island.
+  A voice assistant, a teleprompter, a video downloader and a dozen Mac utilities, living in the Dynamic Island.
 </p>
 
 ## The island's headline features
+
+### Assistant
+Hold <kbd>⌃ control</kbd> + <kbd>⌥ option</kbd>, ask out loud, let go. Or type into the Assistant page.
+
+- **Instant commands, no AI:** "open Spotify", "quit Slack", "volume 30", "mute", "dark mode on", "search for…", "next song", "set a 10 minute timer", "run my Log Water shortcut", "find my lease PDF", "remind me to call Sam in 20 minutes".
+- **Sees your screen when you ask about it:** "what's this error?", "summarize this page". Anything else goes to the [Claude Code](https://claude.com/claude-code) you're already signed in to, so it runs on your Claude plan with no API key. Pick Haiku, Sonnet or Opus.
+- **Does things, asks first:** replies can open apps and links, search the web or Spotlight, change volume or appearance, start timers, run Shortcuts and add reminders. Quitting apps, running shortcuts and adding reminders wait for your "Do it".
+- **Remembers you:** "remember I prefer aisle seats" goes into every later ask; forget items from the ✦ menu.
+- Replies are read aloud after spoken asks (toggle with the speaker button). Speech is recognized on your Mac. The closed island shows Listening, Thinking and Talking.
+
+Built from the best of [Atticus](https://github.com/SaarthurR/atticus-mac) and [Plip](https://github.com/hussainn7/plip-oss).
 
 ### Teleprompter
 Read your script right under the camera, so your eyes stay on the lens.
@@ -28,7 +39,7 @@ Paste a link from YouTube or 1,000+ other sites and download it from the island.
 
 Modeled on [Parabolic](https://github.com/NickvisionApps/Parabolic).
 
-Both pages lead the island's sections: hover the island, or press ⌥⌘E (Teleprompter) or ⌥⌘Y (Video Downloader) while it is open.
+These pages lead the island's sections: hover the island, or press ⌥⌘K (Assistant), ⌥⌘E (Teleprompter) or ⌥⌘Y (Video Downloader) while it is open.
 
 ## Install only what you use
 
@@ -157,7 +168,7 @@ To remove Islet with its settings and permissions: `./Tools/uninstall.sh`.
 
 ## Private by default
 
-Islet is local-first, with no account, analytics or tracking. The network is touched only by things you start: video downloads, the one-time yt-dlp download, the speed test, Homebrew actions and optional online lyric lookup. Automatic updates, temporary share links and in-app feedback are off in this build. Teleprompter speech recognition is done by macOS. See the [privacy notes](docs/PRIVACY.md) and [permissions](docs/PERMISSIONS.md).
+Islet is local-first, with no account, analytics or tracking. The network is touched only by things you start: assistant questions (sent through your Claude Code, with a screenshot only when you ask about the screen), video downloads, the one-time yt-dlp download, the speed test, Homebrew actions and optional online lyric lookup. Automatic updates, temporary share links and in-app feedback are off in this build. Teleprompter speech recognition is done by macOS. See the [privacy notes](docs/PRIVACY.md) and [permissions](docs/PERMISSIONS.md).
 
 ## License
 

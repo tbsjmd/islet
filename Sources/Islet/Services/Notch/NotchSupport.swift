@@ -7,11 +7,12 @@ import Foundation
 import CoreGraphics
 
 enum NotchModule: String, CaseIterable, Identifiable {
-    case teleprompter, videoDownloader, controls, mixer, music, clipboard, captures, files, system, tools, calendar, notifications, timer, camera, downloads, scratchpad, agents, watch
+    case assistant, teleprompter, videoDownloader, controls, mixer, music, clipboard, captures, files, system, tools, calendar, notifications, timer, camera, downloads, scratchpad, agents, watch
     var id: String { rawValue }
 
     var symbol: String {
         switch self {
+        case .assistant: return "waveform.circle"
         case .teleprompter: return "text.viewfinder"
         case .videoDownloader: return "arrow.down.to.line.circle"
         case .controls: return "slider.horizontal.3"
@@ -39,6 +40,7 @@ enum NotchModule: String, CaseIterable, Identifiable {
     /// Stable across ordering and languages; every destination has a direct key.
     var shortcutKey: String {
         switch self {
+        case .assistant: return "k"
         case .teleprompter: return "e"
         case .videoDownloader: return "y"
         case .controls: return "c"
@@ -62,7 +64,7 @@ enum NotchModule: String, CaseIterable, Identifiable {
 
     func isAvailable(in defaults: UserDefaults = .standard) -> Bool {
         switch self {
-        case .teleprompter, .videoDownloader, .controls, .music: return true
+        case .assistant, .teleprompter, .videoDownloader, .controls, .music: return true
         case .timer: return AppFeature.notchTimer.isAvailable(in: defaults)
         case .camera: return AppFeature.cameraPreview.isAvailable(in: defaults)
         case .downloads: return AppFeature.notchDownloads.isAvailable(in: defaults)
@@ -828,12 +830,13 @@ enum NotchMusicStripLayout {
 }
 
 enum NotchCompactActivity: String, Identifiable {
-    case teleprompter, videoDownload, timer, watch, downloads, agents, calendar, music, keepAwake
+    case assistant, teleprompter, videoDownload, timer, watch, downloads, agents, calendar, music, keepAwake
 
     var id: String { rawValue }
 
     func title(_ language: AppLanguage) -> String {
         switch self {
+        case .assistant: return "Assistant"
         case .teleprompter: return "Teleprompter"
         case .videoDownload: return "Video Download"
         case .timer: return FeatureStrings.notchActivities(language).timer
@@ -849,6 +852,7 @@ enum NotchCompactActivity: String, Identifiable {
     /// Keep Awake has no page of its own: its tile is on Controls.
     var module: NotchModule {
         switch self {
+        case .assistant: return .assistant
         case .teleprompter: return .teleprompter
         case .videoDownload: return .videoDownloader
         case .timer: return .timer
@@ -1814,11 +1818,11 @@ enum NotchSupport {
     /// Keep Awake comes last: a session can run all day, even more than
     /// music plays, and it only says that the Mac stays awake. A watch
     /// follows the timer: the person started both and is waiting on them.
-    static func compactActivities(teleprompter: Bool = false, videoDownload: Bool = false,
+    static func compactActivities(assistant: Bool = false, teleprompter: Bool = false, videoDownload: Bool = false,
                                   timer: Bool, watch: Bool = false, downloads: Bool, agents: Bool,
                                   calendar: Bool, music: Bool, keepAwake: Bool = false) -> [NotchCompactActivity] {
         let candidates: [(Bool, NotchCompactActivity)] = [
-            (teleprompter, .teleprompter), (videoDownload, .videoDownload), (timer, .timer), (watch, .watch), (downloads, .downloads), (agents, .agents),
+            (assistant, .assistant), (teleprompter, .teleprompter), (videoDownload, .videoDownload), (timer, .timer), (watch, .watch), (downloads, .downloads), (agents, .agents),
             (calendar, .calendar), (music, .music), (keepAwake, .keepAwake)
         ]
         return candidates.compactMap { $0.0 ? $0.1 : nil }
@@ -2808,7 +2812,7 @@ struct NotchGeometry: Equatable {
                 contentHeight = min(budget, agentsHeight.map { $0 > 0 ? $0 : NotchLayout.emptyHeight } ?? budget)
             // Lists and previews fill the chosen content budget.
             case .mixer, .calendar, .clipboard, .captures, .files, .notifications, .downloads, .camera, .scratchpad, .watch,
-                 .teleprompter, .videoDownloader:
+                 .assistant, .teleprompter, .videoDownloader:
                 contentHeight = budget
             }
         }

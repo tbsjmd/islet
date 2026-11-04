@@ -1371,6 +1371,7 @@ def main():
     music_visibility = music_visibility.replace("UserDefaults.standard", "ReviewDefaults.current!")
     music_visibility = music_visibility.replace("calendar: hasCalendarActivity", "calendar: false")
     # The headline pages run real services the review doubles leave out.
+    music_visibility = music_visibility.replace("AssistantService.shared.isBusy", "false")
     music_visibility = music_visibility.replace("TeleprompterService.shared.isReading", "false")
     music_visibility = music_visibility.replace("VideoDownloaderService.shared.activeJob != nil", "false")
     music_visibility = music_visibility.replace(

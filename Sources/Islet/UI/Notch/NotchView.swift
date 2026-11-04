@@ -238,7 +238,7 @@ struct NotchView: View {
             case .calendar: NotchCapsuleCalendarStrip(service: service, size: size)
             case .music: NotchCapsuleMusicStrip(service: service, size: size, interactive: true)
             case .keepAwake: NotchCapsuleKeepAwakeStrip(service: service, size: size)
-            case .teleprompter, .videoDownload: NotchCapsuleHeadlineStrip(service: service, activity: activity, size: size)
+            case .assistant, .teleprompter, .videoDownload: NotchCapsuleHeadlineStrip(service: service, activity: activity, size: size)
             }
         } else {
             // Handed down, the wings stay as they were drawn while a strip
@@ -253,7 +253,7 @@ struct NotchView: View {
             case .calendar: NotchCalendarStrip(service: service, displayGeometry: geometry)
             case .music: NotchMusicStrip(service: service, displayGeometry: geometry, interactive: true)
             case .keepAwake: NotchKeepAwakeStrip(service: service, displayGeometry: geometry)
-            case .teleprompter, .videoDownload: NotchHeadlineStrip(service: service, activity: activity, displayGeometry: geometry)
+            case .assistant, .teleprompter, .videoDownload: NotchHeadlineStrip(service: service, activity: activity, displayGeometry: geometry)
             }
         }
     }
@@ -600,6 +600,7 @@ struct NotchView: View {
             // here would replace.
             case .tools: QuickLauncherView(notchSize: pageSize)
             case .scratchpad: NotchScratchpadView(service: service)
+            case .assistant: NotchAssistantView()
             case .teleprompter: NotchTeleprompterView(service: service)
             case .videoDownloader: NotchVideoDownloaderView()
             case .agents: NotchAgentsView(size: pageSize)
@@ -823,6 +824,7 @@ struct NotchShape: Shape {
 extension NotchModule: PanelOrderItem {
     func title(_ language: AppLanguage) -> String {
         switch self {
+        case .assistant: return "Assistant"
         case .teleprompter: return "Teleprompter"
         case .videoDownloader: return "Video Downloader"
         case .timer: return FeatureStrings.notchActivities(language).timer

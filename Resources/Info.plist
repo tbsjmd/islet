@@ -55,15 +55,15 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Islet uses Automation to move files, send items to the Trash, open requested commands and control playback in your media apps.</string>
+	<string>Islet uses Automation to move files, send items to the Trash, open requested commands, control playback in your media apps, and let the assistant switch dark mode or add reminders you approve.</string>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>Islet uses each app's audio to adjust its volume in the mixer, to move Dynamic Island's music bars and to include the Mac's sound in the screen recordings you start. Nothing leaves your Mac.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Islet uses Bluetooth only to read the battery level of connected peripherals. Nothing leaves your Mac.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Islet listens to your microphone only while the teleprompter follows your voice, or when you turn it on for a screen recording. Audio stays on your Mac unless you choose to create a temporary link.</string>
+	<string>Islet listens to your microphone only while you hold Control-Option to ask the assistant, while the teleprompter follows your voice, or when you turn it on for a screen recording. Audio stays on your Mac unless you choose to create a temporary link.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Islet recognizes your speech so the teleprompter can highlight each word of your script as you say it.</string>
+	<string>Islet recognizes your speech on your Mac to hear what you ask the assistant and to highlight each word of your teleprompter script as you say it.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Show your upcoming appointments in the notch. Calendar events stay on this Mac.</string>
 	<key>NSCameraUsageDescription</key>

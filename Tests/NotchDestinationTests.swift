@@ -221,7 +221,7 @@ enum NotchDestinationContract {
         service.open(.system, metric: .cpu)
         for (_, feature) in families { defaults.set(false, forKey: feature.availabilityKey) }
         service.syncWithPreferences()
-        suite.expect(!service.modules.contains(.system) && service.selected == .teleprompter
+        suite.expect(!service.modules.contains(.system) && service.selected == .assistant
                && service.selectedMetric == nil && service.requestedDetail == nil,
                "removing the last system family selects an available module without keeping its old detail")
         defaults.set(true, forKey: AppFeature.fanControl.availabilityKey)

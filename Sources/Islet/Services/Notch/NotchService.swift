@@ -544,7 +544,8 @@ final class NotchService: ObservableObject {
     }
 
     var compactActivities: [NotchCompactActivity] {
-        NotchSupport.compactActivities(teleprompter: TeleprompterService.shared.isReading,
+        NotchSupport.compactActivities(assistant: AssistantService.shared.isBusy,
+                                      teleprompter: TeleprompterService.shared.isReading,
                                       videoDownload: VideoDownloaderService.shared.activeJob != nil,
                                       timer: hasTimerActivity, watch: hasWatchActivity, downloads: hasDownloadActivity,
                                       agents: hasAgentActivity, calendar: hasCalendarActivity,
@@ -674,7 +675,7 @@ final class NotchService: ObservableObject {
                                                     paired: companion != nil)
         // Its reading is a countdown like the timer's, so it takes the timer's wings.
         case .keepAwake: return geometry.compactTimerGeometry(showsDownloads: false, wing: keepAwakeStripWing(in: geometry))
-        case .teleprompter, .videoDownload:
+        case .assistant, .teleprompter, .videoDownload:
             return geometry.compactTimerGeometry(showsDownloads: false,
                                                  wing: NotchHeadlineActivity.stripWing(activity ?? .teleprompter, in: geometry))
         default: return geometry
@@ -1097,7 +1098,7 @@ final class NotchService: ObservableObject {
                 NotchKeepAwakeSupport.compactText(until: $0, now: Date(), locale: Locale(identifier: language.rawValue))
             }
             return layout.keepAwakeSurface(reading: reading, geometry: geometry)
-        case .teleprompter, .videoDownload:
+        case .assistant, .teleprompter, .videoDownload:
             return layout.headlineSurface(symbol: NotchHeadlineActivity.symbol(activity),
                                           reading: NotchHeadlineActivity.reading(activity), geometry: geometry)
         }
@@ -4200,6 +4201,15 @@ final class NotchService: ObservableObject {
         }
         // The two headline pages: reading a script and fetching a video
         // both show as live activities of the closed island.
+        // Hold Control-Option anywhere to talk to the assistant.
+        AssistantService.shared.startHotkey()
+        AssistantService.shared.$phase.removeDuplicates().dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.syncMenuSpaceMonitoring()
+                self?.objectWillChange.send()
+                self?.refreshPresentation()
+            }.store(in: &subscriptions)
         TeleprompterService.shared.$isReading.removeDuplicates()
             .combineLatest(VideoDownloaderService.shared.$jobs.map { $0.contains(where: \.isActive) }.removeDuplicates())
             .dropFirst()

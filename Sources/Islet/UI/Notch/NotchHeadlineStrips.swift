@@ -8,14 +8,30 @@ import SwiftUI
 /// laid out like the Keep Awake strip. A click opens the page.
 enum NotchHeadlineActivity {
     static func symbol(_ activity: NotchCompactActivity) -> String {
-        activity == .teleprompter ? "text.viewfinder" : "arrow.down.to.line.circle.fill"
+        switch activity {
+        case .assistant: return "waveform"
+        case .teleprompter: return "text.viewfinder"
+        default: return "arrow.down.to.line.circle.fill"
+        }
     }
 
     static func tint(_ activity: NotchCompactActivity) -> Color {
-        activity == .teleprompter ? .orange : .cyan
+        switch activity {
+        case .assistant: return Color(red: 0.7, green: 0.6, blue: 1)
+        case .teleprompter: return .orange
+        default: return .cyan
+        }
     }
 
     static func reading(_ activity: NotchCompactActivity) -> String {
+        if activity == .assistant {
+            switch AssistantService.shared.phase {
+            case .listening: return "Listening"
+            case .thinking: return "Thinking"
+            case .speaking: return "Talking"
+            case .idle: return ""
+            }
+        }
         if activity == .teleprompter {
             let prompter = TeleprompterService.shared
             return prompter.isPaused ? "Paused" : "\(Int(prompter.fraction * 100))%"
@@ -46,7 +62,8 @@ final class NotchHeadlineTicker: ObservableObject {
     @Published var now = Date()
     private init() {
         let timer = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
-            guard TeleprompterService.shared.isReading || VideoDownloaderService.shared.activeJob != nil else { return }
+            guard AssistantService.shared.isBusy || TeleprompterService.shared.isReading
+                    || VideoDownloaderService.shared.activeJob != nil else { return }
             self?.now = Date()
         }
         RunLoop.main.add(timer, forMode: .common)

@@ -94,6 +94,7 @@ struct NotchEditorStrings {
         case .scratchpad: return scratchpadSummary
         case .agents: return agentsSummary
         case .watch: return watchSummary
+        case .assistant: return "Hold Control and Option and ask out loud. Instant commands run without AI; everything else uses the Claude Code you already signed in to, looking at your screen when you ask about it."
         case .teleprompter: return "Read a script right under the camera. Word tracking follows your voice and highlights each word as you say it."
         case .videoDownloader: return "Paste a link to download video or audio from YouTube and 1,000+ other sites with yt-dlp. Progress shows on the closed island."
         }

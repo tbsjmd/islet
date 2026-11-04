@@ -545,7 +545,7 @@ struct NotchSettings: View {
         case .watch:
             NotchWatchSettingsControls()
                 .toggleStyle(TrailingSwitchToggleStyle())
-        case .mixer, .system, .tools, .teleprompter, .videoDownloader:
+        case .mixer, .system, .tools, .assistant, .teleprompter, .videoDownloader:
             EmptyView()
         }
     }
@@ -884,7 +884,7 @@ struct NotchSettings: View {
         case .scratchpad: return .scratchpad
         case .agents: return .notchAgents
         case .watch: return .notchWatch
-        case .teleprompter, .videoDownloader: return nil
+        case .assistant, .teleprompter, .videoDownloader: return nil
         }
     }
 

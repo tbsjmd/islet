@@ -14,6 +14,13 @@ The Video Downloader page follows the design of Parabolic
 included; downloads are performed by yt-dlp (https://github.com/yt-dlp/yt-dlp,
 Unlicense), which Islet runs from your installation or downloads on first use.
 
+## Atticus and Plip
+The Assistant (Sources/Islet/Services/Assistant) follows the design of Atticus
+(https://github.com/SaarthurR/atticus-mac, MIT, Copyright (c) 2026 SaarthurR) and
+Plip (https://github.com/hussainn7/plip-oss, MIT, Copyright (c) 2026 Hussain): the
+hold-to-talk shortcut, instant commands, app-name aliases, screen-aware questions and
+ask-first actions. It is a new Swift implementation; no code from either is included.
+
 ## Textream
 The teleprompter's speech engine (Sources/Islet/Services/Teleprompter/Textream*.swift)
 is taken from Textream (https://github.com/f/textream) under the MIT License:

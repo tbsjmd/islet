@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Assistant in the island, after Atticus and Plip: hold Control-Option and ask out loud, or type. Instant commands run without AI; other questions go to your signed-in Claude Code with a screenshot when they're about the screen. It can open apps and links, search, set volume, dark mode and timers, find files, run Shortcuts and add reminders, asking before anything that quits, runs or writes. It remembers what you tell it, reads replies aloud and shows its state on the closed island.
+
 ## [1.0.0] - 2026-11-02
 
 ### Summary

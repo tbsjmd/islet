@@ -178,6 +178,7 @@ struct NotchPagePreview: View {
             }
         // The live area belongs to the island; the preview explains it instead.
         case .watch: NotchWatchView(size: size)
+        case .assistant: NotchAssistantView()
         case .teleprompter: NotchTeleprompterView(service: notch)
         case .videoDownloader: NotchVideoDownloaderView()
         }
@@ -408,6 +409,7 @@ extension NotchModule {
         case .scratchpad: return .yellow
         case .agents: return Color(red: 0.85, green: 0.47, blue: 0.34)
         case .watch: return .purple
+        case .assistant: return Color(red: 0.55, green: 0.4, blue: 0.95)
         case .teleprompter: return .orange
         case .videoDownloader: return Color(red: 0.1, green: 0.6, blue: 0.75)
         }
