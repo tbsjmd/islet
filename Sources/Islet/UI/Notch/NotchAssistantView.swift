@@ -103,6 +103,8 @@ struct NotchAssistantView: View {
                 Text("Opus · most capable").tag("opus")
             }
             .pickerStyle(.inline)
+            Button("Assistant Settings…") { NotchService.shared.openSettings(showing: .assistant) }
+            Divider()
             let facts = AssistantMemory.facts
             if !facts.isEmpty {
                 Menu("Remembered") {
