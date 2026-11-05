@@ -38,12 +38,16 @@ Hold <kbd>⌃ control</kbd> + <kbd>⌥ option</kbd>, say what you want, let go.
 | *"How do I export this as a PDF?"* | **Draws a ring on the exact spot** and moves to the next step when you click it |
 | *"Reply to this email saying Thursday works"* | **Clicks and types for you**, step by step, showing each step in the island |
 | *"Find my lease PDF"* | Searches your Mac with Spotlight and lists the matches |
+| *"Explain how DNS works and draw it"* | **Builds a live diagram** in a floating glass canvas, piece by piece |
+| *"Show me a 3D model of a jet engine"* | **Builds a 3D model** you can spin with the mouse |
+| *"What do these buttons do?"* | **Draws on your screen**: circles, arrows, boxes and labels that trace themselves in |
 | *"Remember I prefer aisle seats"* | Keeps it in mind for every later ask |
 
 - **Your sign-in or your key.** Claude on your Claude plan (one-click **Connect**, no API key), a Claude API key, Gemini with your Google sign-in or a free Gemini API key, or any local model server such as Ollama. Pick one in **Settings → Islet → Assistant**.
 - **An agent, not just a chatbot.** Each step it reads a screenshot plus a numbered map of the front app's buttons and fields, then clicks, types, presses keys, scrolls or drags until the job is done.
 - **Safe by default.** It asks once before it takes over the mouse and keyboard. Anything that sends, buys, deletes or can't be undone waits for your **Do it**. It never types into password fields, the model has no shell, and <kbd>Esc</kbd> stops it instantly.
-- **Talks back.** Replies are read aloud, in the voice you choose. Speech is recognized on your Mac.
+- **Talks back.** Replies are read aloud in the voice you choose, and the word being spoken lights up. Speech is recognized on your Mac.
+- **Alive on screen.** A companion cursor rides beside your pointer and swoops to whatever it's explaining (after [Clicky](https://github.com/farzaa/clicky)). The screen edges glow while it listens, thinks and works, an orb in the island swells with your voice, replies arrive word by word out of a blur, and every click it makes ripples.
 
 ```mermaid
 flowchart LR
@@ -222,6 +226,8 @@ Islet stands on the shoulders of great open-source projects:
 | [Textream](https://github.com/f/textream) | The teleprompter's speech-tracking engine (MIT) |
 | [Atticus](https://github.com/SaarthurR/atticus-mac) | Agent design and the keyboard, mouse and scroll code (MIT) |
 | [Plip](https://github.com/hussainn7/plip-oss) | The notch assistant's design, element map and pointing (MIT) |
+| [Clicky](https://github.com/farzaa/clicky) | The companion cursor and its flight (MIT) |
+| [Mermaid](https://github.com/mermaid-js/mermaid) | Live diagrams (MIT) |
 | [Parabolic](https://github.com/NickvisionApps/Parabolic) · [yt-dlp](https://github.com/yt-dlp/yt-dlp) | The downloader's design and its engine |
 
 Islet isn't affiliated with or endorsed by any of them, or by Apple. Full notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

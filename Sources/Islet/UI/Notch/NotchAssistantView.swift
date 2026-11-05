@@ -6,7 +6,9 @@ import SwiftUI
 
 struct NotchAssistantView: View {
     @ObservedObject private var assistant = AssistantService.shared
+    @ObservedObject private var stage = AssistantOverlay.shared
     @State private var typed = ""
+    @State private var hintsShown = false
     @FocusState private var fieldFocused: Bool
 
     var body: some View {
@@ -16,25 +18,34 @@ struct NotchAssistantView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         if assistant.turns.isEmpty && assistant.phase != .listening { hints }
                         ForEach(assistant.turns) { turn in
-                            NotchAssistantTurnView(turn: turn).id(turn.id)
+                            NotchAssistantTurnView(turn: turn, newest: turn.id == assistant.turns.last?.id)
+                                .id(turn.id)
+                                .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 10)), removal: .opacity))
                         }
                         if assistant.phase == .listening {
-                            Text(assistant.transcript.isEmpty ? "Listening…" : assistant.transcript)
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundStyle(assistant.transcript.isEmpty ? .white.opacity(0.45) : .white)
-                                .id("live")
+                            HStack(alignment: .center, spacing: 12) {
+                                AssistantOrb(phase: .listening, level: assistant.level, size: 34)
+                                Text(assistant.transcript.isEmpty ? "Listening…" : assistant.transcript)
+                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .foregroundStyle(assistant.transcript.isEmpty ? .white.opacity(0.45) : .white)
+                                    .contentTransition(.interpolate)
+                                    .animation(.easeOut(duration: 0.18), value: assistant.transcript)
+                            }
+                            .id("live")
+                            .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .leading)))
                         }
                         if assistant.phase == .thinking {
-                            HStack(spacing: 6) {
-                                ProgressView().controlSize(.small)
-                                Text(assistant.waitingForPerson != nil ? "Your turn: click the highlighted spot."
-                                     : (assistant.turns.last?.stepCount ?? 0) > 0 ? "Working… step \((assistant.turns.last?.stepCount ?? 0) + 1)" : "Thinking…")
-                                    .font(.system(size: 12)).foregroundStyle(.white.opacity(0.5))
+                            HStack(spacing: 10) {
+                                AssistantOrb(phase: .thinking, level: 0, acting: stage.mood == .acting, size: 24)
+                                ShimmerText(text: assistant.waitingForPerson != nil ? "Your turn: click the highlighted spot."
+                                            : stage.mood == .acting ? "Working on it… step \((assistant.turns.last?.stepCount ?? 0) + 1)"
+                                            : (assistant.turns.last?.stepCount ?? 0) > 0 ? "Looking again…" : "Thinking…")
                                 if assistant.waitingForPerson != nil {
                                     NotchPillButton(title: "Next") { assistant.waitingForPerson?() }
                                 }
                             }
                             .id("live")
+                            .transition(.opacity.combined(with: .offset(y: 6)))
                         }
                         if let error = assistant.error {
                             Label(error, systemImage: "exclamationmark.triangle")
@@ -45,6 +56,8 @@ struct NotchAssistantView: View {
                     .padding(.horizontal, 4)
                 }
                 .scrollIndicators(.hidden)
+                .animation(.spring(response: 0.45, dampingFraction: 0.86), value: assistant.phase)
+                .animation(.spring(response: 0.45, dampingFraction: 0.86), value: assistant.turns.count)
                 .onChange(of: assistant.turns.last?.reply) { _, _ in scrollDown(proxy) }
                 .onChange(of: assistant.phase) { _, _ in scrollDown(proxy) }
             }
@@ -62,18 +75,24 @@ struct NotchAssistantView: View {
     }
 
     private var hints: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Hold ⌃ control + ⌥ option and ask out loud.")
-                .font(.system(size: 13, weight: .semibold))
-            ForEach(["“What's this error on my screen?”", "“How do I export this as a PDF?” (it points)",
-                     "“Reply to this email saying Thursday works” (it types, you send)",
-                     "“Open Spotify” · “Volume 30” · “Dark mode on”",
-                     "“Find my lease PDF”", "“Remind me to call Sam in 20 minutes”",
-                     "“Remember I prefer aisle seats”"], id: \.self) {
-                Text($0).font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
+        let examples = ["“What's this error on my screen?”", "“How do I export this as a PDF?” (it draws on screen)",
+                        "“Explain how DNS works” (a live diagram)", "“Show me a 3D model of a jet engine”",
+                        "“Reply to this email saying Thursday works” (it types, you send)",
+                        "“Open Spotify” · “Volume 30” · “Dark mode on”", "“Remember I prefer aisle seats”"]
+        return HStack(alignment: .top, spacing: 14) {
+            AssistantOrb(phase: .idle, level: 0, size: 38)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Hold ⌃ control + ⌥ option and ask out loud.")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                ForEach(Array(examples.enumerated()), id: \.offset) { index, example in
+                    Text(example).font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
+                        .opacity(hintsShown ? 1 : 0).offset(x: hintsShown ? 0 : -8).blur(radius: hintsShown ? 0 : 3)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.85).delay(0.05 + Double(index) * 0.05), value: hintsShown)
+                }
             }
         }
         .foregroundStyle(.white)
+        .onAppear { hintsShown = true }
     }
 
     private var field: some View {
@@ -89,9 +108,17 @@ struct NotchAssistantView: View {
             Button {
                 assistant.phase == .listening ? assistant.finishListening() : assistant.listen()
             } label: {
-                Image(systemName: assistant.phase == .listening ? "stop.circle.fill" : "mic.circle.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(assistant.phase == .listening ? .red : .white)
+                ZStack {
+                    if assistant.phase == .listening {
+                        Circle().fill(AssistantOverlay.accent.opacity(0.35)).frame(width: 30, height: 30)
+                            .scaleEffect(1 + assistant.level * 0.6).blur(radius: 4)
+                    }
+                    Image(systemName: assistant.phase == .listening ? "stop.circle.fill" : "mic.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(assistant.phase == .listening ? AnyShapeStyle(Color.white)
+                                         : AnyShapeStyle(LinearGradient(colors: [.white, Color(red: 0.78, green: 0.72, blue: 1)], startPoint: .top, endPoint: .bottom)))
+                        .symbolEffect(.bounce, value: assistant.phase == .listening)
+                }
             }
             .buttonStyle(.plain)
             .help(assistant.phase == .listening ? "Send" : "Talk")
@@ -100,6 +127,8 @@ struct NotchAssistantView: View {
         .padding(.horizontal, 10)
         .frame(height: 34)
         .modifier(NotchControlSurface(cornerRadius: 12, interactive: false))
+        .overlay { if assistant.isBusy { AuroraBorder(cornerRadius: 12, lineWidth: 1).transition(.opacity) } }
+        .animation(.easeInOut(duration: 0.3), value: assistant.isBusy)
     }
 
     private var leadingControls: some View {
@@ -145,6 +174,7 @@ struct NotchAssistantView: View {
 
 private struct NotchAssistantTurnView: View {
     let turn: AssistantTurn
+    var newest = false
     @ObservedObject private var assistant = AssistantService.shared
 
     var body: some View {
@@ -155,12 +185,17 @@ private struct NotchAssistantTurnView: View {
             }
             .foregroundStyle(.white.opacity(0.5))
             if !turn.steps.isEmpty {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     ForEach(Array(turn.steps.suffix(6).enumerated()), id: \.offset) { _, step in
-                        Label(step, systemImage: "checkmark.circle")
-                            .font(.system(size: 11)).foregroundStyle(.white.opacity(0.5)).lineLimit(1)
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill").font(.system(size: 10))
+                                .foregroundStyle(LinearGradient(colors: [Color(red: 1, green: 0.78, blue: 0.4), Color(red: 1, green: 0.5, blue: 0.55)], startPoint: .top, endPoint: .bottom))
+                            Text(step).font(.system(size: 11, design: .rounded)).foregroundStyle(.white.opacity(0.6)).lineLimit(1)
+                        }
+                        .transition(.asymmetric(insertion: .move(edge: .leading).combined(with: .opacity), removal: .opacity))
                     }
                 }
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: turn.steps.count)
             }
             if let gate = turn.gate {
                 HStack(spacing: 6) {
@@ -172,13 +207,13 @@ private struct NotchAssistantTurnView: View {
                 }
                 .padding(8)
                 .modifier(NotchControlSurface(cornerRadius: 10, interactive: false))
+                .overlay(AuroraBorder(cornerRadius: 10))
+                .transition(.scale(scale: 0.95).combined(with: .opacity))
             }
             if !turn.reply.isEmpty {
-                Text(turn.reply)
-                    .font(.system(size: 14))
-                    .foregroundStyle(.white)
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
+                RevealText(text: turn.reply,
+                           spoken: assistant.spokenText == turn.reply ? assistant.spokenRange : nil,
+                           animate: newest)
             }
             ForEach(turn.pending) { action in
                 HStack(spacing: 6) {

@@ -5,6 +5,7 @@
 // undone wait for a yes; Escape or the shortcut stops it at any point.
 
 import AppKit
+import SwiftUI
 import Foundation
 
 final class AssistantAgent {
@@ -40,7 +41,13 @@ final class AssistantAgent {
         escape = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 { DispatchQueue.main.async { self?.service.stop() } }
         }
-        defer { stopWatching(); AssistantOverlay.shared.clear() }
+        defer {
+            stopWatching()
+            if AssistantOverlay.shared.annotations.isEmpty { AssistantOverlay.shared.clear() }
+            else { AssistantOverlay.shared.fade(after: 25) }
+        }
+        let stage = AssistantOverlay.shared
+        stage.clear()
 
         var message = (history.isEmpty ? "" : "Earlier in this chat:\n\(history)\n\n") + "Request: " + request
         var lastSay = ""
@@ -57,6 +64,7 @@ final class AssistantAgent {
                 message += "\n\n(No screenshot with this request.)"
             }
             let reply: String
+            stage.mood = .thinking
             do { reply = try await brain.send(message, image: view?.png) } catch {
                 return cancelled ? "Stopped." : error.localizedDescription
             }
@@ -67,6 +75,8 @@ final class AssistantAgent {
                 service.updateTurn(turnID) { $0.reply = plan.say }
                 if !plan.done { service.speak(plan.say) }
             }
+            // The companion says the answer beside the pointer when the island is closed.
+            if plan.done, !plan.say.isEmpty, !NotchService.shared.expanded { stage.say(plan.say) }
             if plan.steps.isEmpty, !plan.done, view == nil {
                 // It wants to see before it acts.
                 message = "Here is the screen."
@@ -82,6 +92,7 @@ final class AssistantAgent {
                 if outcome.hasPrefix("Stopped") { return "Okay, I stopped." }
             }
             if !pointed.isEmpty {
+                stage.mood = .speaking
                 AssistantOverlay.shared.show(pointed)
                 let followed = await waitForClick(in: pointed.map(\.rect))
                 AssistantOverlay.shared.clear()
@@ -144,6 +155,72 @@ final class AssistantAgent {
         return view?.elements.first { $0.id == id }
     }
 
+    /// A point from an element number or picture pixels, in screen coordinates.
+    private func spot(_ value: Any?, view: AssistantView?) -> CGPoint? {
+        guard let view else { return nil }
+        if let id = value as? Int ?? (value as? String).flatMap(Int.init), let e = view.elements.first(where: { $0.id == id }) {
+            return CGPoint(x: e.frame.midX, y: e.frame.midY)
+        }
+        if let pair = value as? [NSNumber], pair.count == 2 { return view.screenPoint(x: pair[0].doubleValue, y: pair[1].doubleValue) }
+        return nil
+    }
+
+    /// A rectangle from an element number, or x/y/w/h in picture pixels.
+    private func area(_ mark: [String: Any], view: AssistantView?) -> CGRect? {
+        guard let view else { return nil }
+        if let id = mark["element"] as? Int ?? (mark["element"] as? String).flatMap(Int.init),
+           let e = view.elements.first(where: { $0.id == id }) { return e.frame }
+        guard let x = (mark["x"] as? NSNumber)?.doubleValue, let y = (mark["y"] as? NSNumber)?.doubleValue else { return nil }
+        let w = (mark["w"] as? NSNumber)?.doubleValue ?? 40, h = (mark["h"] as? NSNumber)?.doubleValue ?? 40
+        let a = view.screenPoint(x: x, y: y), b = view.screenPoint(x: x + w, y: y + h)
+        // x/y name the centre when no size is given, the corner when one is.
+        return mark["w"] == nil ? CGRect(x: a.x - (b.x - a.x) / 2, y: a.y - (b.y - a.y) / 2, width: b.x - a.x, height: b.y - a.y)
+            : CGRect(x: a.x, y: a.y, width: b.x - a.x, height: b.y - a.y)
+    }
+
+    private static let colors: [String: Color] = [
+        "violet": AssistantOverlay.accent, "purple": AssistantOverlay.accent,
+        "cyan": Color(red: 0.3, green: 0.85, blue: 1), "blue": Color(red: 0.35, green: 0.6, blue: 1),
+        "gold": Color(red: 1, green: 0.78, blue: 0.35), "orange": Color(red: 1, green: 0.62, blue: 0.3),
+        "pink": Color(red: 1, green: 0.5, blue: 0.75), "red": Color(red: 1, green: 0.38, blue: 0.4),
+        "green": Color(red: 0.35, green: 0.95, blue: 0.6), "white": .white,
+    ]
+
+    private func annotations(_ object: [String: Any], view: AssistantView?) -> [AssistantOverlay.Annotation] {
+        let marks = object["marks"] as? [[String: Any]] ?? []
+        return marks.prefix(24).enumerated().compactMap { index, mark in
+            let label = mark["label"] as? String ?? ""
+            let color = Self.colors[(mark["color"] as? String ?? "").lowercased()] ?? AssistantOverlay.accent
+            let kind: AssistantOverlay.Annotation.Kind?
+            switch (mark["type"] as? String ?? "circle").lowercased() {
+            case "arrow":
+                guard let to = spot(mark["to"], view: view) ?? area(mark, view: view).map({ CGPoint(x: $0.midX, y: $0.midY) }) else { return nil }
+                let from = spot(mark["from"], view: view) ?? CGPoint(x: to.x - 150, y: to.y - 110)
+                kind = .arrow(from: from, to: to)
+            case "box", "rect": kind = area(mark, view: view).map { .box($0) }
+            case "underline": kind = area(mark, view: view).map { .underline($0) }
+            case "highlight": kind = area(mark, view: view).map { .highlight($0) }
+            case "text", "label": kind = area(mark, view: view).map { .text(CGPoint(x: $0.midX, y: $0.midY)) }
+            case "scribble", "path":
+                let points = (mark["points"] as? [[NSNumber]] ?? []).compactMap { pair in
+                    pair.count == 2 ? view?.screenPoint(x: pair[0].doubleValue, y: pair[1].doubleValue) : nil
+                }
+                kind = points.count > 1 ? .scribble(points) : nil
+            default: kind = area(mark, view: view).map { .ring($0) }
+            }
+            return kind.map { AssistantOverlay.Annotation(kind: $0, label: label, color: color, order: index) }
+        }
+    }
+
+    private func anchor(of kind: AssistantOverlay.Annotation.Kind) -> CGPoint? {
+        switch kind {
+        case .arrow(_, let to): return to
+        case .ring(let r), .box(let r), .underline(let r), .highlight(let r): return CGPoint(x: r.maxX, y: r.maxY)
+        case .text(let p): return p
+        case .scribble(let points): return points.last
+        }
+    }
+
     private func describe(_ object: [String: Any], view: AssistantView?) -> String {
         let target = element(object, view: view).map { "“\($0.label.isEmpty ? $0.role : $0.label)”" } ?? "the spot"
         switch object["do"] as? String ?? "" {
@@ -153,6 +230,9 @@ final class AssistantAgent {
         case "scroll": return "Scroll \(object["direction"] as? String ?? "down")"
         case "drag": return "Drag"
         case "point": return "Show \(target)"
+        case "annotate": return "Draw on the screen"
+        case "diagram": return "Draw a diagram"
+        case "model3d": return "Build a 3D model"
         case "wait": return "Wait"
         default: return AssistantActions.kind(from: object).map { AssistantAction(kind: $0).summary } ?? "Something I can't do"
         }
@@ -169,6 +249,27 @@ final class AssistantAgent {
             let rect = element(object, view: view)?.frame ?? CGRect(x: at.x - 20, y: at.y - 20, width: 40, height: 40)
             marks.append(.init(rect: rect, label: object["label"] as? String ?? ""))
             return summary
+        }
+        if kind == "annotate" {
+            guard service.showsWhere else { return "Drawing on screen is off." }
+            let drawn = annotations(object, view: view)
+            guard !drawn.isEmpty else { return "Nothing to draw." }
+            AssistantOverlay.shared.annotate(drawn)
+            if let first = drawn.first, let spot = anchor(of: first.kind) {
+                AssistantOverlay.shared.fly(to: CGPoint(x: spot.x + 14, y: spot.y + 12), say: nil)
+            }
+            return "Drew \(drawn.count) mark\(drawn.count == 1 ? "" : "s") on the screen."
+        }
+        if kind == "diagram" {
+            guard let source = object["mermaid"] as? String, !source.isEmpty else { return "No diagram to draw." }
+            AssistantCanvas.shared.showDiagram(source, title: object["title"] as? String ?? "Diagram",
+                                               caption: object["caption"] as? String ?? "")
+            return "Drew the diagram “\(object["title"] as? String ?? "Diagram")”."
+        }
+        if kind == "model3d" {
+            guard let spec = AssistantModelSpec(object) else { return "No model to build." }
+            AssistantCanvas.shared.showModel(spec)
+            return "Built the 3D model “\(spec.title)” from \(spec.parts.count) parts."
         }
         if kind == "wait" {
             try? await Task.sleep(for: .seconds(min(10, max(0.2, (object["seconds"] as? NSNumber)?.doubleValue ?? 1))))
@@ -188,6 +289,7 @@ final class AssistantAgent {
             guard await service.ask(gate: summary + "?", turnID: turnID) else { return "Stopped." }
         }
         if controls, NotchService.shared.expanded { NotchService.shared.collapse(); try? await Task.sleep(for: .milliseconds(250)) }
+        if controls { AssistantOverlay.shared.mood = .acting }
 
         do {
             switch kind {
@@ -245,7 +347,18 @@ final class AssistantAgent {
         {"do":"click","element":12} · {"do":"click","x":640,"y":380,"double":true} · {"do":"click","element":4,"right":true}
         {"do":"type","text":"hello","element":7,"submit":true} · {"do":"key","keys":"cmd+s"} · {"do":"scroll","direction":"down","x":600,"y":500}
         {"do":"drag","from":[100,200],"to":[400,200]} · {"do":"wait","seconds":1}
-        {"do":"point","element":12,"label":"Click Export"} (draws a ring there and waits for the person to click it)
+        {"do":"point","element":12,"label":"Click Export"} (the companion flies there, rings it and waits for the person to click it)
+
+        Showing and teaching:
+        {"do":"annotate","marks":[{"type":"arrow","from":[200,300],"to":12,"label":"This setting"},{"type":"circle","element":7,"label":"Here"},
+          {"type":"box","x":100,"y":80,"w":300,"h":40,"color":"cyan"},{"type":"underline","element":3},{"type":"highlight","x":..,"y":..,"w":..,"h":..},
+          {"type":"text","x":500,"y":120,"label":"Note"}]}  draws on top of the screen; colours: violet, cyan, gold, pink, green
+        {"do":"diagram","title":"How DNS works","caption":"optional","mermaid":"flowchart LR\\n  A[Browser] --> B[Resolver]"}  a live diagram \
+        in a floating canvas; any Mermaid type works (flowchart, sequenceDiagram, mindmap, timeline, classDiagram, stateDiagram, pie, gantt)
+        {"do":"model3d","title":"Water molecule","caption":"optional","spin":true,"parts":[{"shape":"sphere","size":[1.2],"position":[0,0,0],\
+        "color":"#ff4d4d","label":"O"},{"shape":"cylinder","size":[0.15,1],"position":[0.6,-0.4,0],"rotation":[0,0,50],"color":"#dddddd"}]}  a 3D model \
+        to turn with the mouse; shapes: box (size w,h,d), sphere (diameter), cylinder (diameter,height), cone, torus (diameter,thickness), capsule, \
+        pyramid (w,h,d), tube, plane; optional "metal" 0-1 and "glow" true. Build real structure from many parts.
 
         """
         prompt += AssistantActions.promptReference
@@ -253,7 +366,9 @@ final class AssistantAgent {
 
 
         How to work:
-        - A plain question: answer in "say", no actions, done true.
+        - A plain question: answer in "say", no actions, done true. When the answer is about something on screen, also annotate it.
+        - "Explain…", "draw…", "diagram…", "visualize…": make a diagram; "show me in 3D", "model…", "what does … look like": build a 3D \
+        model. Keep "say" short and let the canvas carry the detail.
         - "How do I…" or "where is…": show, don't do. Point at one spot per step with a short label, done false; you'll get \
         the next screen once they click it. Finish with done true.
         - "Do this for me": act. Take a few actions per step, then look again (done false) until it's finished; then done \

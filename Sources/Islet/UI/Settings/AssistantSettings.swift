@@ -158,7 +158,15 @@ struct AssistantSettingsControls: View {
                     }
                 }
             }
-            SettingsRow(symbol: "scope", title: "Show me where", caption: "Rings and labels on screen for “where is…” and “how do I…”, one step at a time.") {
+            SettingsRow(symbol: "cursorarrow.rays", title: "Companion cursor",
+                        caption: "A glowing buddy beside your pointer that flies to what it's explaining, after Clicky.") {
+                Toggle("", isOn: $assistant.buddyEnabled).labelsHidden().toggleStyle(.switch)
+            }
+            SettingsRow(symbol: "rectangle.dashed", title: "Screen glow",
+                        caption: "Light along the screen edges while it listens, thinks and works.") {
+                Toggle("", isOn: $assistant.screenGlow).labelsHidden().toggleStyle(.switch)
+            }
+            SettingsRow(symbol: "scope", title: "Show me where", caption: "Draws arrows, circles, boxes and labels on your screen to explain, and points the way one step at a time.") {
                 Toggle("", isOn: $assistant.showsWhere).labelsHidden().toggleStyle(.switch)
             }
             SettingsRow(symbol: "repeat", title: "Most steps per task", caption: "It stops and asks to keep going after this many.") {

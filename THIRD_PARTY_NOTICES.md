@@ -23,6 +23,16 @@ the step-by-step agent loop, the element map, pointing on screen and ask-first a
 AssistantHands.swift adapts Atticus's key-combo parser, risky-key check and
 front-of-screen mouse, drag and scroll events (MIT, Copyright (c) 2026 SaarthurR).
 
+## Clicky
+The Assistant's companion cursor (Sources/Islet/Services/Assistant/AssistantStage.swift)
+follows Clicky (https://github.com/farzaa/clicky, MIT, Copyright (c) 2026 Farza): the
+cursor-following buddy, its quadratic-arc flight with tangent rotation and mid-flight
+swell, and the character-streamed speech bubble are adapted from its OverlayWindow.swift.
+
+## Mermaid
+Diagrams are drawn with Mermaid (https://github.com/mermaid-js/mermaid, MIT), bundled
+unmodified as Resources/Vendor/mermaid.min.js (v11.4.1).
+
 ## Textream
 The teleprompter's speech engine (Sources/Islet/Services/Teleprompter/Textream*.swift)
 is taken from Textream (https://github.com/f/textream) under the MIT License:

@@ -87,6 +87,9 @@ final class AssistantService: NSObject, ObservableObject {
     @AssistantPreference("actions") private var storedActions = true
     @AssistantPreference("confirmAll") private var storedConfirmAll = false
     @AssistantPreference("memory") private var storedMemory = true
+    // Look
+    @AssistantPreference("buddy") private var storedBuddy = true
+    @AssistantPreference("screenGlow") private var storedGlow = true
 
     var engine: Engine {
         get { Engine(rawValue: engineRaw) ?? .claudeCode }
@@ -122,6 +125,16 @@ final class AssistantService: NSObject, ObservableObject {
     var actionsEnabled: Bool { get { storedActions } set { objectWillChange.send(); storedActions = newValue } }
     var confirmsEveryAction: Bool { get { storedConfirmAll } set { objectWillChange.send(); storedConfirmAll = newValue } }
     var remembers: Bool { get { storedMemory } set { objectWillChange.send(); storedMemory = newValue } }
+    /// Clicky's companion cursor beside the pointer while the assistant is working.
+    var buddyEnabled: Bool { get { storedBuddy } set { objectWillChange.send(); storedBuddy = newValue } }
+    /// Light along the screen edges while it listens, thinks and works.
+    var screenGlow: Bool { get { storedGlow } set { objectWillChange.send(); storedGlow = newValue } }
+
+    /// Microphone loudness, 0…1, smoothed for the visuals.
+    @Published private(set) var level: CGFloat = 0
+    /// The words being spoken right now, so the reply can light them up.
+    @Published private(set) var spokenRange: NSRange?
+    @Published private(set) var spokenText = ""
 
     var anthropicKey: String {
         get { Keychain.read("anthropic") }
@@ -150,6 +163,7 @@ final class AssistantService: NSObject, ObservableObject {
     private var holdWork: DispatchWorkItem?
     private var heldByHotkey = false
     private var lastWasVoice = false
+    private var subscriptions: Set<AnyCancellable> = []
 
     private override init() {
         // Settings from the first build of the Assistant.
@@ -158,6 +172,16 @@ final class AssistantService: NSObject, ObservableObject {
         if let old = defaults.string(forKey: "assistantModel") { defaults.set(old, forKey: "assistant.model"); defaults.removeObject(forKey: "assistantModel") }
         super.init()
         synthesizer.delegate = self
+        // The screen's glow and the companion follow what the assistant is doing.
+        $phase.removeDuplicates().receive(on: DispatchQueue.main).sink { phase in
+            let stage = AssistantOverlay.shared
+            switch phase {
+            case .idle: stage.mood = .off; stage.level = 0
+            case .listening: stage.mood = .listening
+            case .thinking: if stage.mood != .acting { stage.mood = .thinking }
+            case .speaking: stage.mood = .speaking
+            }
+        }.store(in: &subscriptions)
     }
 
     var isBusy: Bool { phase != .idle }
@@ -254,8 +278,19 @@ final class AssistantService: NSObject, ObservableObject {
         self.request = request
         let input = audioEngine.inputNode
         input.removeTap(onBus: 0)
-        input.installTap(onBus: 0, bufferSize: 1024, format: input.outputFormat(forBus: 0)) { buffer, _ in
+        input.installTap(onBus: 0, bufferSize: 1024, format: input.outputFormat(forBus: 0)) { [weak self] buffer, _ in
             request.append(buffer)
+            // Loudness for the orb, the companion and the screen glow.
+            guard let samples = buffer.floatChannelData?[0], buffer.frameLength > 0 else { return }
+            var sum: Float = 0
+            for i in 0..<Int(buffer.frameLength) { sum += samples[i] * samples[i] }
+            let rms = sqrt(sum / Float(buffer.frameLength))
+            let loud = CGFloat(min(1, max(0, (20 * log10(max(rms, 1e-6)) + 52) / 42)))
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.level = self.level * 0.55 + loud * 0.45
+                AssistantOverlay.shared.level = self.level
+            }
         }
         audioEngine.prepare()
         do { try audioEngine.start() } catch {
@@ -554,7 +589,7 @@ final class AssistantService: NSObject, ObservableObject {
         synthesizer.speak(utterance("Hi, I'm Islet. Hold control and option to ask me anything."))
     }
 
-    private func utterance(_ text: String) -> AVSpeechUtterance {
+    func utterance(_ text: String) -> AVSpeechUtterance {
         let utterance = AVSpeechUtterance(string: text)
         if !voice.isEmpty { utterance.voice = AVSpeechSynthesisVoice(identifier: voice) }
         utterance.rate = Float(speechRate)
@@ -569,7 +604,20 @@ final class AssistantService: NSObject, ObservableObject {
 }
 
 extension AssistantService: AVSpeechSynthesizerDelegate {
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange,
+                           utterance: AVSpeechUtterance) {
+        let text = utterance.speechString
+        DispatchQueue.main.async {
+            self.spokenText = text
+            self.spokenRange = characterRange
+            // Each word gives the visuals a small beat.
+            AssistantOverlay.shared.level = 0.45
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { if self.phase == .speaking { AssistantOverlay.shared.level = 0.12 } }
+        }
+    }
+
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async { self.spokenRange = nil }
         DispatchQueue.main.async { if self.phase == .speaking { self.phase = .idle } }
     }
 
