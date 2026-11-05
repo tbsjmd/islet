@@ -190,7 +190,7 @@ The island also holds music with lyrics, your calendar, timers, notifications, t
 
 ## ✦ Install
 
-1. **[Download Islet-1.0.0.dmg](https://github.com/tbsjmd/islet/releases/latest/download/Islet-1.0.0.dmg)** from the [latest release](https://github.com/tbsjmd/islet/releases/latest).
+1. **[Download Islet-1.1.0.dmg](https://github.com/tbsjmd/islet/releases/latest/download/Islet-1.1.0.dmg)** from the [latest release](https://github.com/tbsjmd/islet/releases/latest).
 2. Open it and drag **Islet** onto **Applications**.
 3. Open Islet. macOS may say it can't verify the developer, because Islet isn't notarized yet: open **System Settings → Privacy & Security** and click **Open Anyway**.
 4. Hover over the island. Then open **Settings → Islet → Assistant**, connect Claude or Gemini, and hold <kbd>⌃</kbd><kbd>⌥</kbd>.

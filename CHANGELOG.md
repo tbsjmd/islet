@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-04
+
+### Summary
+The Assistant learns to show, not just tell: it draws on your screen, builds live diagrams and 3D models, and rides beside your pointer as a companion cursor, with new motion throughout.
+
 ### Added
 - The Assistant draws on your screen to explain: arrows, circles, boxes, underlines, highlights and labels that trace themselves in.
 - Live diagrams (any Mermaid type) and 3D models in a floating glass canvas that builds them piece by piece; drag a model to turn it.
